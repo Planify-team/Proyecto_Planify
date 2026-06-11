@@ -46,11 +46,12 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DJANGO_SETTINGS_MODULE: config.settings.local
+      DJANGO_SETTINGS_MODULE: config.settings.docker
       POSTGRES_HOST: postgres
       REDIS_HOST: redis
     volumes:
       - ./backend:/app
+      - ./docker:/docker
       - static_files:/app/staticfiles
       - media_files:/app/mediafiles
     ports:
@@ -79,7 +80,7 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DJANGO_SETTINGS_MODULE: config.settings.local
+      DJANGO_SETTINGS_MODULE: config.settings.docker
       POSTGRES_HOST: postgres
       REDIS_HOST: redis
     volumes:

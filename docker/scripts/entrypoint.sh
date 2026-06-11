@@ -3,8 +3,8 @@ set -e
 
 echo "Waiting for database..."
 until python -c "
-import psycopg2, os
-psycopg2.connect(
+import psycopg, os
+psycopg.connect(
     dbname=os.environ['POSTGRES_DB'],
     user=os.environ['POSTGRES_USER'],
     password=os.environ['POSTGRES_PASSWORD'],
@@ -19,8 +19,10 @@ done
 echo "Running migrations..."
 python manage.py migrate --noinput
 
-echo "Collecting static files..."
-python manage.py collectstatic --noinput
+if [ "${DEBUG}" != "True" ] && [ "${DEBUG}" != "true" ] && [ "${DEBUG}" != "1" ]; then
+    echo "Collecting static files..."
+    python manage.py collectstatic --noinput
+fi
 
 echo "Starting server..."
 exec "$@"

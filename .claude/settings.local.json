@@ -48,7 +48,29 @@
       "PowerShell($body = '{\"email\":\"admin@planify.com\",\"password\":\"admin123\"}'; try { $resp = Invoke-WebRequest -Uri \"http://localhost:8000/api/v1/auth/login/\" -Method POST -ContentType \"application/json\" -Body $body -UseBasicParsing; $json = $resp.Content | ConvertFrom-Json; $token = $json.access; Write-Host \"LOGIN OK - user: $\\($json.data.user.email\\), role: $\\($json.data.user.role\\)\" } catch { Write-Host \"ERROR: $_\" }})",
       "PowerShell($body = '{\"email\":\"admin@planify.com\",\"password\":\"admin123\"}'; $resp = Invoke-WebRequest -Uri \"http://localhost:8000/api/v1/auth/login/\" -Method POST -ContentType \"application/json\" -Body $body -UseBasicParsing; $token = \\($resp.Content | ConvertFrom-Json\\).data.access; $headers = @{ Authorization = \"Bearer $token\" }; $endpoints = @\\(\"/api/v1/preferences/\", \"/api/v1/reminders/\", \"/api/v1/notifications/\", \"/api/v1/recommendations/\"\\); foreach \\($ep in $endpoints\\) { try { $r = Invoke-WebRequest -Uri \"http://localhost:8000$ep\" -Headers $headers -UseBasicParsing; Write-Host \"$ep -> $\\($r.StatusCode\\) OK\" } catch { Write-Host \"$ep -> ERROR: $_\" } })",
       "PowerShell($routes = @\\(\"/\", \"/login\", \"/register\", \"/explorar\", \"/recomendaciones\", \"/notificaciones\", \"/recordatorios\", \"/onboarding/preferencias\", \"/mapa\", \"/favoritos\"\\); foreach \\($r in $routes\\) { try { $resp = Invoke-WebRequest -Uri \"http://localhost:5175$r\" -UseBasicParsing -TimeoutSec 5; Write-Host \"$r -> $\\($resp.StatusCode\\)\" } catch { Write-Host \"$r -> ERROR\" } })",
-      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); cd C:\\\\Users\\\\lauta\\\\OneDrive\\\\Desktop\\\\Planify\\\\frontend; npx tsc --noEmit 2>&1)"
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); cd C:\\\\Users\\\\lauta\\\\OneDrive\\\\Desktop\\\\Planify\\\\frontend; npx tsc --noEmit 2>&1)",
+      "Bash(docker compose *)",
+      "PowerShell(docker volume ls *)",
+      "Bash(docker exec *)",
+      "Skill(update-config)",
+      "Bash(python *)",
+      "Skill(run)",
+      "Bash(curl *)",
+      "Bash(Start-Process *)",
+      "PowerShell(Start-Process \"http://localhost:80\")"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "Write-Output '{\"systemMessage\": \"Recordatorio: revisá si hay cambios de sprint, decisiones de arquitectura, feedback o estado del proyecto para guardar en la memoria.\"}'",
+            "shell": "powershell"
+          }
+        ]
+      }
     ]
   }
 }

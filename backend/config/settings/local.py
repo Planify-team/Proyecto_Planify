@@ -8,14 +8,6 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 INSTALLED_APPS += []  # noqa
 
-# Use SQLite for local development (no PostgreSQL install required)
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
 # Use in-memory cache for local development (no Redis required)
 CACHES = {
     "default": {
