@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { MapPin, LogOut, Compass, Heart, Sparkles, Map, Settings, Menu, X, Bell, Tag } from 'lucide-react'
+import { MapPin, LogOut, Compass, Heart, Sparkles, Map, Settings, Menu, X, Bell, Tag, Search, CalendarDays } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/hooks/useAuth'
 import { useUnreadCount } from '@/hooks/useNotifications'
@@ -10,6 +10,7 @@ import Button from '@/components/ui/Button'
 const NAV_LINKS = [
   { to: '/explorar',        label: 'Explorar',       icon: <Compass className="h-4 w-4" /> },
   { to: '/recomendaciones', label: 'Para vos',        icon: <Sparkles className="h-4 w-4" /> },
+  { to: '/planner',         label: 'Planner',         icon: <CalendarDays className="h-4 w-4" /> },
   { to: '/mapa',            label: 'Mapa',            icon: <Map className="h-4 w-4" /> },
   { to: '/favoritos',       label: 'Favoritos',       icon: <Heart className="h-4 w-4" /> },
   { to: '/promociones',     label: 'Promociones',     icon: <Tag className="h-4 w-4" /> },
@@ -21,7 +22,17 @@ export default function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const unreadCount = useUnreadCount()
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    const q = searchQuery.trim()
+    if (q) {
+      navigate(`/search?q=${encodeURIComponent(q)}`)
+      setSearchQuery('')
+    }
+  }
 
   const isActive = (to: string) => location.pathname === to
 
@@ -55,6 +66,20 @@ export default function Navbar() {
             </nav>
           )}
         </div>
+
+        {/* Search bar */}
+        <form onSubmit={handleSearch} className="hidden md:flex items-center">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar lugares, eventos..."
+              className="pl-9 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:bg-white w-56 transition-all"
+            />
+          </div>
+        </form>
 
         {/* Desktop right */}
         <nav className="flex items-center gap-3">

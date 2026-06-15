@@ -1,10 +1,11 @@
 from django.urls import path, include
 from apps.integrations.urls import weather_urlpatterns, external_places_urlpatterns
-from apps.core.views import trending
+from apps.core.views import trending, search
 
 urlpatterns = [
     path("health/", include("apps.core.urls")),
     path("trending/", trending, name="trending"),
+    path("search/", search, name="search"),
     path("auth/", include("apps.users.urls.auth")),
     path("users/", include("apps.users.urls.users")),
     path("preferences/", include("apps.users.urls.preferences")),
@@ -19,4 +20,5 @@ urlpatterns = [
     path("weather/", include((weather_urlpatterns, "weather"))),
     path("external/places/", include((external_places_urlpatterns, "external-places"))),
     path("reviews/", include("apps.reviews.urls")),
+    path("plans/", include("apps.planner.urls")),
 ]

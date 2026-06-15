@@ -52,6 +52,8 @@ project/
 │   │   ├── activities/
 │   │   ├── recommendations/
 │   │   ├── favorites/
+│   │   ├── reviews/
+│   │   ├── planner/
 │   │   ├── promotions/
 │   │   ├── notifications/
 │   │   ├── weather/
@@ -80,6 +82,8 @@ project/
 │   │   │   ├── places/
 │   │   │   ├── favorites/
 │   │   │   ├── promotions/
+│   │   │   ├── search/
+│   │   │   ├── planner/
 │   │   │   └── map/
 │   │   │
 │   │   ├── hooks/

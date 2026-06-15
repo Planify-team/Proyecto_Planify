@@ -18,6 +18,11 @@ import EventDetail from '@/features/events/pages/EventDetail'
 import PlaceDetail from '@/features/places/pages/PlaceDetail'
 import ActivityDetail from '@/features/activities/pages/ActivityDetail'
 import PromotionsPage from '@/features/promotions/pages/PromotionsPage'
+import SearchResultsPage from '@/features/search/pages/SearchResultsPage'
+import PlannerPage from '@/features/planner/pages/PlannerPage'
+import MyPlansPage from '@/features/planner/pages/MyPlansPage'
+import PlanDetailPage from '@/features/planner/pages/PlanDetailPage'
+import PlanPublicPage from '@/features/planner/pages/PlanPublicPage'
 import NotFoundPage from '@/components/common/NotFoundPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -55,7 +60,14 @@ export default function AppRoutes() {
         <Route path="/events/:id"      element={<ProtectedRoute><EventDetail /></ProtectedRoute>} />
         <Route path="/places/:id"      element={<ProtectedRoute><PlaceDetail /></ProtectedRoute>} />
         <Route path="/activities/:id"  element={<ProtectedRoute><ActivityDetail /></ProtectedRoute>} />
+        <Route path="/search"          element={<SearchResultsPage />} />
+        <Route path="/planner"         element={<ProtectedRoute><PlannerPage /></ProtectedRoute>} />
+        <Route path="/mis-planes"      element={<ProtectedRoute><MyPlansPage /></ProtectedRoute>} />
+        <Route path="/planes/:id"      element={<ProtectedRoute><PlanDetailPage /></ProtectedRoute>} />
       </Route>
+
+      {/* Public plan page — no auth, no MainLayout */}
+      <Route path="/planes/p/:slug" element={<PlanPublicPage />} />
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

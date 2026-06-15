@@ -288,11 +288,11 @@ Toda acción relevante debe generar evento auditable.
 
 | Integración | Propósito | Responsable | Estado |
 |----------|----------|----------|----------|
-| OpenWeather API | Obtener clima actual y pronósticos | Backend | Pendiente |
-| Google Maps API | Geolocalización y mapas | Backend | Pendiente |
-| Google Places API | Obtención de lugares cercanos | Backend | Pendiente |
-| Ticketmaster API | Consulta de eventos y recitales | Backend | Pendiente |
-| Sistema de Notificaciones | Alertas y recordatorios | Backend | Pendiente |
+| OpenWeather API | Obtener clima actual y pronósticos | Backend | Disponible (clave configurada, uso condicional) |
+| Google Maps API | Geolocalización y mapas | Backend | Pendiente Sprint 5+ |
+| Google Places API | Obtención de lugares cercanos | Backend | Pendiente Sprint 5+ |
+| Ticketmaster API | Consulta de eventos y recitales | Backend | Pendiente Sprint 5+ |
+| Sistema de Notificaciones (interno) | Alertas y recordatorios vía Celery | Backend | Implementado Sprint 2 |
 | Google Calendar | Exportación de eventos y recordatorios | Backend | Futuro |
 
 ### Principios de integración
@@ -307,25 +307,27 @@ Toda acción relevante debe generar evento auditable.
 
 ## 10. Decisiones arquitectónicas
 
-Las decisiones relevantes deben registrarse como ADR en `templates/ADR_TEMPLATE.md`.
+Las decisiones relevantes deben registrarse como ADR en `docs/adr/`.
 
-### ADR previstas
+### ADRs registrados
 
-- Uso de Django REST Framework como backend principal.
-- Uso de PostgreSQL como motor de base de datos.
-- Arquitectura basada en servicios (`services/`).
-- Autenticación mediante JWT.
-- Integración mediante APIs REST externas.
-- Uso de Google Maps API para geolocalización y cálculo de distancias.
-- Uso de OpenWeather API para información climática en tiempo real.
-- Estrategia de auditoría basada en eventos.
-- Implementación de soft delete para entidades críticas.
+| ADR | Título | Estado |
+|---|---|---|
+| [ADR-001](adr/ADR-001-django-rest-framework.md) | Django REST Framework como capa de API | Aprobado |
+| [ADR-002](adr/ADR-002-autenticacion-jwt.md) | Autenticación basada en JWT con SimpleJWT | Aprobado |
+| [ADR-003](adr/ADR-003-postgresql-redis.md) | PostgreSQL como BD principal y Redis como caché/broker | Aprobado |
+| [ADR-004](adr/ADR-004-arquitectura-modular.md) | Arquitectura modular por dominio de negocio | Aprobado |
+| [ADR-005](adr/ADR-005-openweather.md) | Integración OpenWeather API | Aprobado |
+| [ADR-006](adr/ADR-006-google-places.md) | Integración Google Places API | Aprobado |
+| [ADR-007](adr/ADR-007-recommendation-engine-v2.md) | Motor de Recomendaciones V2 con score_breakdown | Aprobado |
+| [ADR-008](adr/ADR-008-reviews-ratings.md) | Sistema de Reviews & Ratings con entidad genérica | Aprobado |
+| [ADR-009](adr/ADR-009-planner-itinerario.md) | Planner de Itinerario Inteligente | Aprobado |
+
+### ADRs pendientes
+
+- Estrategia de soft delete para entidades críticas.
 - Recomendaciones calculadas exclusivamente desde backend.
-- Separación entre actividades indoor, outdoor y mixtas.
-- Uso de Docker para despliegue y portabilidad.
-- Manejo centralizado de variables sensibles mediante variables de entorno.
 - Estrategia de fallback ante fallas de proveedores externos.
-- Arquitectura preparada para futura implementación multi-tenant.
 
 ---
 

@@ -18,6 +18,8 @@ def event_list(request):
             date_from=request.query_params.get("date_from"),
             date_to=request.query_params.get("date_to"),
             city=request.query_params.get("city"),
+            free=request.query_params.get("free"),
+            name=request.query_params.get("name"),
         )
         return success_response(EventSerializer(events, many=True).data)
 

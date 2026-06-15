@@ -1,9 +1,20 @@
+from django.db.models import Avg, Count, OuterRef, Subquery
 from django.utils import timezone
 from .models import Event, EventStatus
 
 
-def get_published_events(category=None, date_from=None, date_to=None, city=None):
+def _rating_subquery(field: str):
+    from apps.reviews.models import Review
+    base = Review.objects.filter(entity_type="event", entity_id=OuterRef("id")).values("entity_id")
+    if field == "avg":
+        return base.annotate(v=Avg("stars")).values("v")[:1]
+    return base.annotate(v=Count("id")).values("v")[:1]
+
+
+def get_published_events(category=None, date_from=None, date_to=None, city=None, free=None, name=None):
     qs = Event.objects.filter(status=EventStatus.PUBLISHED, start_date__gte=timezone.now())
+    if name:
+        qs = qs.filter(title__icontains=name)
     if category:
         qs = qs.filter(category__icontains=category)
     if date_from:
@@ -12,11 +23,30 @@ def get_published_events(category=None, date_from=None, date_to=None, city=None)
         qs = qs.filter(start_date__date__lte=date_to)
     if city:
         qs = qs.filter(place__city__icontains=city)
+    if free:
+        qs = qs.filter(price=0)
+    qs = qs.annotate(
+        avg_rating=Subquery(_rating_subquery("avg")),
+        review_count=Subquery(_rating_subquery("count")),
+    )
     return qs.select_related("place", "organizer").order_by("start_date")
 
 
 def get_event_by_id(event_id):
+    from apps.reviews.models import Review
+    avg_sub = (
+        Review.objects.filter(entity_type="event", entity_id=OuterRef("id"))
+        .values("entity_id").annotate(a=Avg("stars")).values("a")[:1]
+    )
+    cnt_sub = (
+        Review.objects.filter(entity_type="event", entity_id=OuterRef("id"))
+        .values("entity_id").annotate(c=Count("id")).values("c")[:1]
+    )
     try:
-        return Event.objects.select_related("place", "organizer").get(id=event_id)
+        return (
+            Event.objects.select_related("place", "organizer")
+            .annotate(avg_rating=Subquery(avg_sub), review_count=Subquery(cnt_sub))
+            .get(id=event_id)
+        )
     except Event.DoesNotExist:
         return None

@@ -136,6 +136,49 @@ GET  /api/v1/recommendations/
 POST /api/v1/recommendations/click/
 ```
 
+### Reviews
+
+```txt
+POST   /api/v1/reviews/                              — Crear o actualizar reseña (auth)
+GET    /api/v1/reviews/{entity_type}/{entity_id}/   — Listar reseñas de una entidad (público)
+DELETE /api/v1/reviews/{entity_type}/{entity_id}/delete/ — Eliminar propia reseña (auth)
+```
+
+`entity_type` puede ser: `place`, `activity`, `event`.
+
+### Planes (Planner)
+
+```txt
+POST   /api/v1/plans/generate/                       — Generar itinerario automático (auth)
+GET    /api/v1/plans/                                — Listar planes propios (auth)
+POST   /api/v1/plans/                                — Crear plan vacío (auth)
+GET    /api/v1/plans/{id}/                           — Ver plan propio (auth)
+PATCH  /api/v1/plans/{id}/                           — Actualizar plan: is_public, status, title (auth)
+DELETE /api/v1/plans/{id}/                           — Eliminar plan propio (auth)
+POST   /api/v1/plans/{id}/items/                     — Agregar ítem al plan (auth)
+DELETE /api/v1/plans/{id}/items/{item_id}/           — Quitar ítem del plan (auth)
+GET    /api/v1/plans/public/{slug}/                  — Ver plan público sin autenticación (AllowAny)
+```
+
+`generate/` acepta: `date`, `budget`, `people_count`, `city`. Devuelve el plan con 3 ítems (morning/afternoon/evening).
+Regla de clima: `date ≤ 5 días desde hoy` → real OpenWeather; `date > 5 días` → lógica neutral.
+
+### Búsqueda global
+
+```txt
+GET /api/v1/search/?q={query}
+```
+
+Retorna resultados agrupados: `{ places: [...], activities: [...], events: [...] }` (máximo 10 por tipo).
+
+### Trending
+
+```txt
+GET /api/v1/trending/
+```
+
+Retorna entidades más agregadas a favoritos en los últimos 30 días. Máximo 6 por tipo.
+
 ### Clima
 
 ```txt

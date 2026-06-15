@@ -50,6 +50,32 @@ def trending(request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+def search(request):
+    from apps.places.models import Place
+    from apps.activities.models import Activity
+    from apps.events.models import Event, EventStatus
+
+    q = request.query_params.get("q", "").strip()
+    if not q:
+        return success_response({"places": [], "activities": [], "events": []})
+
+    places = list(
+        Place.objects.filter(is_active=True, name__icontains=q)
+        .values("id", "name", "category", "city", "image_url", "price_level")[:10]
+    )
+    activities = list(
+        Activity.objects.filter(is_active=True, name__icontains=q)
+        .values("id", "name", "category", "activity_type", "min_budget", "indoor", "outdoor")[:10]
+    )
+    events = list(
+        Event.objects.filter(status=EventStatus.PUBLISHED, title__icontains=q)
+        .values("id", "title", "category", "start_date", "price", "image_url")[:10]
+    )
+    return success_response({"places": places, "activities": activities, "events": events})
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def healthcheck(request):
     db_ok = True
     try:

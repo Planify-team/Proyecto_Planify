@@ -1,0 +1,27 @@
+# Runtime dependencies only — no testing or linting tools
+
+# Core
+Django==5.2.2
+gunicorn==23.0.0
+djangorestframework==3.16.0
+django-cors-headers==4.7.0
+
+# Auth
+djangorestframework-simplejwt==5.4.0
+
+# Database
+psycopg[binary]==3.2.13
+
+# Cache & Async
+redis==5.2.1
+celery==5.4.0
+django-redis==5.4.0
+
+# Environment
+python-decouple==3.8
+
+# Filtering
+django-filter==25.1
+
+# HTTP
+requests==2.32.3

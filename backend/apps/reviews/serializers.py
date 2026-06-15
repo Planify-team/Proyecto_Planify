@@ -12,7 +12,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "user_email", "user_name", "created_at")
 
     def get_user_name(self, obj):
-        return obj.user.get_full_name() or obj.user.email.split("@")[0]
+        return obj.user.full_name or obj.user.email.split("@")[0]
 
 
 class ReviewCreateSerializer(serializers.Serializer):

@@ -1,0 +1,150 @@
+version: "3.9"
+
+# Production compose — no source-code mounts, no debug ports, Dockerfile.prod images.
+# Requires a .env.prod file at the repo root (see .env.example).
+
+services:
+
+  # ── Infrastructure ──────────────────────────────────────────────────────
+  postgres:
+    image: postgres:17-alpine
+    container_name: planify_postgres_prod
+    restart: always
+    env_file: .env.prod
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # No external port — only accessible from within the network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - planify_prod
+
+  redis:
+    image: redis:7-alpine
+    container_name: planify_redis_prod
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    # No external port
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - planify_prod
+
+  # ── Application ─────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    image: planify-backend:prod
+    container_name: planify_backend_prod
+    restart: always
+    env_file: .env.prod
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.docker
+      POSTGRES_HOST: postgres
+      REDIS_HOST:    redis
+    volumes:
+      # No source mount — code is baked in.
+      # Persist static and media files so nginx can serve them.
+      - static_files:/app/staticfiles
+      - media_files:/app/mediafiles
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - planify_prod
+
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    image: planify-backend:prod
+    container_name: planify_celery_prod
+    restart: always
+    env_file: .env.prod
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.docker
+      POSTGRES_HOST: postgres
+      REDIS_HOST:    redis
+    # Override the default ENTRYPOINT/CMD: run worker directly, no migrations
+    entrypoint: []
+    command: ["celery", "-A", "config", "worker", "--loglevel=info", "--concurrency=2"]
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - planify_prod
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    image: planify-frontend:prod
+    container_name: planify_frontend_prod
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - planify_prod
+
+  # ── Edge proxy ───────────────────────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: planify_nginx_prod
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_files:/app/staticfiles:ro
+      - media_files:/app/mediafiles:ro
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - planify_prod
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_files:
+  media_files:
+
+networks:
+  planify_prod:
+    driver: bridge

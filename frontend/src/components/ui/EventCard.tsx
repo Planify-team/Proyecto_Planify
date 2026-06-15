@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Calendar, DollarSign, MapPin } from 'lucide-react'
 import type { Event } from '@/types'
 import FavoriteButton from './FavoriteButton'
+import { RatingBadge } from './ReviewSection'
 
 interface EventCardProps {
   event: Event
@@ -50,10 +51,15 @@ export default function EventCard({ event }: EventCardProps) {
           <span className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium">
             {event.category}
           </span>
-          <span className="text-xs text-gray-500 flex items-center gap-0.5">
-            <DollarSign className="h-3 w-3" />
-            {parseFloat(event.price) === 0 ? 'Gratis' : `$${event.price}`}
-          </span>
+          <div className="flex items-center gap-2">
+            {event.avg_rating != null && (
+              <RatingBadge average={event.avg_rating} count={event.review_count} />
+            )}
+            <span className="text-xs text-gray-500 flex items-center gap-0.5">
+              <DollarSign className="h-3 w-3" />
+              {parseFloat(event.price) === 0 ? 'Gratis' : `$${event.price}`}
+            </span>
+          </div>
         </div>
 
         {event.place_name && (

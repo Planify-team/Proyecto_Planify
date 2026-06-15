@@ -1,5 +1,6 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.core.responses import success_response, created_response, error_response
@@ -8,8 +9,13 @@ from apps.users.services import register_user, authenticate_user, update_user_pr
 from apps.audit.services import log_action
 
 
+class AuthThrottle(ScopedRateThrottle):
+    scope = "auth"
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AuthThrottle])
 def register(request):
     serializer = UserRegistrationSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -26,6 +32,7 @@ def register(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AuthThrottle])
 def login(request):
     email = request.data.get("email", "")
     password = request.data.get("password", "")

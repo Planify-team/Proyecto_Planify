@@ -19,6 +19,8 @@ def activity_list(request):
             outdoor=request.query_params.get("outdoor"),
             budget=request.query_params.get("budget"),
             category=request.query_params.get("category"),
+            free=request.query_params.get("free"),
+            name=request.query_params.get("name"),
         )
         return success_response(ActivitySerializer(activities, many=True).data)
 

@@ -522,6 +522,8 @@ SPRINT_2_STATUS: COMPLETED
 SPRINT_3_STATUS: COMPLETED
 SPRINT_4_STATUS: COMPLETED
 SPRINT_5_STATUS: COMPLETED
+SPRINT_6_STATUS: COMPLETED
+SPRINT_7_STATUS: INTELLIGENT_PLANNER
 ```
 
 Sprint 4 — Calidad, Testing y Preparación para Producción (COMPLETADO 2026-06-10):
@@ -546,6 +548,32 @@ Sprint 5 — Integraciones Externas y Recomendaciones V2 (COMPLETADO 2026-06-13)
 - Bloque F: Tests — providers, vistas, WeatherWidget ✓
 - Bloque G: Seguridad — validación lat/lon, timeout 3s, API keys no logueadas ✓
 - Bloque H: ADRs (005-007) + docs actualizadas ✓
+
+Sprint 6 — Reviews, Ratings, Búsqueda Global y Filtros Avanzados (COMPLETADO 2026-06-14):
+
+- Bloque 0: SPRINT_6.md + bug fixes auditados (PlaceSerializer, PlacePermission, Audit N+1, Events PATCH) ✓
+- Bloque 1: Anotaciones avg_rating/review_count en selectors de Places, Activities, Events ✓
+- Bloque 2: Endpoint GET /api/v1/search/?q= con resultados agrupados ✓
+- Bloque 3: Filtros avanzados (indoor/outdoor/free en activities, date_from/date_to/free en events, lat/lon en places) ✓
+- Bloque 4: Tests backend — reviews app, search, trending ✓
+- Bloque 5: RatingBadge en PlaceCard, ActivityCard, EventCard ✓
+- Bloque 6: SearchBar en Navbar + SearchResultsPage en /search ✓
+- Bloque 7: Filtros avanzados UI + tab "Cerca de mí" con geolocalización en ExplorePage ✓
+- Bloque 8: Tests frontend — RatingBadge, SearchResultsPage ✓
+- Bloque 9: ADR-008 + DATA_MODEL, ARCHITECTURE, API_GUIDELINES, FOLDER_STRUCTURE actualizados ✓
+
+Sprint 7 — Planner Inteligente (COMPLETADO 2026-06-14):
+
+- Bloque 1: apps/planner/ — Plan + PlanItem models con status workflow + generation_reason ✓
+- Bloque 2: generate_plan() service — motor de recomendaciones + regla clima ≤5/≥5 días ✓
+- Bloque 3: Endpoints CRUD + generate/ + public/{slug}/ (AllowAny) ✓
+- Bloque 4: 20 tests backend pasando ✓
+- Bloque 5: Types Plan/PlanItem + plannerService.ts ✓
+- Bloque 6: Hooks usePlanner, useMyPlans, usePlan, usePublicPlan, useAddPlanItem, useRemovePlanItem, useUpdatePlan, useDeletePlan ✓
+- Bloque 7: PlannerPage, MyPlansPage, PlanDetailPage, PlanPublicPage + componentes ✓
+- Bloque 8: 14 tests frontend (PlannerForm, ItineraryView, MyPlansPage) = 116 tests total ✓
+- Bloque 9: ADR-009 + DATA_MODEL, ARCHITECTURE, API_GUIDELINES, FOLDER_STRUCTURE, ORCHESTRATOR actualizados ✓
+- TypeScript sin errores ✓
 
 Prohibiciones activas:
 

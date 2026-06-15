@@ -79,6 +79,8 @@ export interface Place {
   source?: string
   external_id?: string | null
   is_active: boolean
+  avg_rating: number | null
+  review_count: number
   created_at: string
   updated_at: string
 }
@@ -114,6 +116,8 @@ export interface Event {
   place: string | null
   place_name: string | null
   organizer_email: string | null
+  avg_rating: number | null
+  review_count: number
   created_at: string
   updated_at: string
 }
@@ -134,6 +138,8 @@ export interface Activity {
   outdoor: boolean
   score_base: number
   is_active: boolean
+  avg_rating: number | null
+  review_count: number
 }
 
 // ─── Favorites ────────────────────────────────────────────────────────────────
@@ -242,6 +248,45 @@ export interface Reminder {
   event_title: string
   reminder_date: string
   created_at: string
+}
+
+// ─── Planner ──────────────────────────────────────────────────────────────────
+
+export type PlanStatus = 'draft' | 'generated' | 'completed' | 'cancelled'
+export type PlanSlot = 'morning' | 'afternoon' | 'evening'
+export type PlanEntityType = 'place' | 'activity' | 'event'
+
+export interface PlanItem {
+  id: string
+  entity_type: PlanEntityType
+  entity_id: string
+  slot: PlanSlot
+  order: number
+  note: string
+  generation_reason: string
+  created_at: string
+}
+
+export interface Plan {
+  id: string
+  title: string
+  date: string
+  budget: string
+  people_count: number
+  city: string
+  slug: string
+  is_public: boolean
+  status: PlanStatus
+  items: PlanItem[]
+  created_at: string
+  updated_at: string
+}
+
+export interface PlanGenerateInput {
+  date: string
+  budget: string
+  people_count: number
+  city: string
 }
 
 // ─── Promotions ───────────────────────────────────────────────────────────────

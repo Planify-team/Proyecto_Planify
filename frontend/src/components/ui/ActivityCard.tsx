@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Users, DollarSign, Cloud, Home } from 'lucide-react'
 import type { Activity } from '@/types'
 import FavoriteButton from './FavoriteButton'
+import { RatingBadge } from './ReviewSection'
 
 interface ActivityCardProps {
   activity: Activity
@@ -36,6 +37,12 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
 
         {activity.description && (
           <p className="text-sm text-gray-600 mt-2 line-clamp-2">{activity.description}</p>
+        )}
+
+        {activity.avg_rating != null && (
+          <div className="mt-2">
+            <RatingBadge average={activity.avg_rating} count={activity.review_count} />
+          </div>
         )}
 
         <div className="flex flex-wrap gap-2 mt-3">

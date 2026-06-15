@@ -40,7 +40,8 @@ User
  ├── Favorite
  ├── Reminder
  ├── Notification
- └── InteractionHistory
+ ├── InteractionHistory
+ └── Review
 
 Place
  ├── Promotion
@@ -59,6 +60,10 @@ Recommendation
  ├── Activity
  ├── Event
  └── Place
+
+Review
+ ├── User
+ └── (Place | Activity | Event) via entity_type + entity_id
 ```
 
 ---
@@ -421,6 +426,103 @@ Motivo:
 
 ---
 
+## Review
+
+Reseña de un usuario sobre un Place, Activity o Event.
+
+### Campos
+
+| Campo | Tipo |
+|---------|---------|
+| id | UUID |
+| user_id | FK |
+| entity_type | Enum (place, activity, event) |
+| entity_id | UUID |
+| stars | Integer (1-5) |
+| text | Text |
+| created_at | DateTime |
+| updated_at | DateTime |
+
+### Restricciones
+
+```txt
+unique_together: (user_id, entity_type, entity_id)
+stars: 1 a 5
+```
+
+### Relaciones
+
+```txt
+N Review → 1 User
+```
+
+---
+
+## Plan
+
+Itinerario del día generado para un usuario.
+
+### Campos
+
+| Campo | Tipo |
+|---------|---------|
+| id | UUID |
+| user_id | FK |
+| title | String |
+| date | Date |
+| budget | Decimal |
+| people_count | Integer |
+| city | String |
+| slug | String (único) |
+| is_public | Boolean |
+| status | Enum (draft, generated, completed, cancelled) |
+| created_at | DateTime |
+| updated_at | DateTime |
+
+### Estados
+
+```txt
+draft      — creado manualmente, sin itinerario generado
+generated  — itinerario generado automáticamente por el motor
+completed  — usuario marcó el plan como realizado
+cancelled  — plan cancelado
+```
+
+### Relaciones
+
+```txt
+N Plan → 1 User
+1 Plan → N PlanItem
+```
+
+---
+
+## PlanItem
+
+Ítem individual dentro de un plan (place, activity o event).
+
+### Campos
+
+| Campo | Tipo |
+|---------|---------|
+| id | UUID |
+| plan_id | FK |
+| entity_type | Enum (place, activity, event) |
+| entity_id | UUID |
+| slot | Enum (morning, afternoon, evening) |
+| order | Integer |
+| note | Text (opcional) |
+| generation_reason | Text (por qué fue elegido por el motor) |
+| created_at | DateTime |
+
+### Relaciones
+
+```txt
+N PlanItem → 1 Plan
+```
+
+---
+
 ## AuditLog
 
 Registro de auditoría del sistema.
@@ -495,8 +597,6 @@ Recommendation.user_id
 Estas entidades no forman parte del MVP pero la arquitectura debe permitir agregarlas.
 
 ```txt
-Review
-Rating
 Achievement
 Friendship
 Chat
