@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { MapPin, LogOut, Compass, Heart, Sparkles, Map, Settings, Menu, X, Bell, Tag, Search, CalendarDays } from 'lucide-react'
+import { MapPin, LogOut, Compass, Heart, Sparkles, Map, Settings, Menu, X, Bell, Tag, Search, CalendarDays, LayoutDashboard } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/hooks/useAuth'
 import { useUnreadCount } from '@/hooks/useNotifications'
 import Avatar from '@/components/ui/Avatar'
 import Button from '@/components/ui/Button'
+import type { UserRole } from '@/types'
 
 const NAV_LINKS = [
   { to: '/explorar',        label: 'Explorar',       icon: <Compass className="h-4 w-4" /> },
@@ -16,6 +17,16 @@ const NAV_LINKS = [
   { to: '/promociones',     label: 'Promociones',     icon: <Tag className="h-4 w-4" /> },
 ]
 
+function getDashboardLink(role: UserRole | undefined) {
+  if (role === 'business_owner' || role === 'admin' || role === 'moderator') {
+    return { to: '/dashboard/business', label: 'Mi Negocio', icon: <LayoutDashboard className="h-4 w-4" /> }
+  }
+  if (role === 'event_organizer') {
+    return { to: '/dashboard/organizer', label: 'Mis Eventos', icon: <LayoutDashboard className="h-4 w-4" /> }
+  }
+  return null
+}
+
 export default function Navbar() {
   const { user, isAuthenticated } = useAuthStore()
   const logout = useLogout()
@@ -24,6 +35,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const unreadCount = useUnreadCount()
+  const dashboardLink = getDashboardLink(user?.role)
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,6 +75,19 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
+              {dashboardLink && (
+                <Link
+                  to={dashboardLink.to}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    isActive(dashboardLink.to)
+                      ? 'bg-primary-50 text-primary-600'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {dashboardLink.icon}
+                  {dashboardLink.label}
+                </Link>
+              )}
             </nav>
           )}
         </div>
@@ -159,6 +184,18 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          {dashboardLink && (
+            <Link
+              to={dashboardLink.to}
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive(dashboardLink.to) ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {dashboardLink.icon}
+              {dashboardLink.label}
+            </Link>
+          )}
           <Link
             to="/notificaciones"
             onClick={() => setMobileOpen(false)}

@@ -12,4 +12,10 @@ class PlacePermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
-        return request.user.is_authenticated and request.user.role in ("admin", "moderator", "business_owner")
+        if not request.user.is_authenticated:
+            return False
+        if request.user.role in ("admin", "moderator"):
+            return True
+        if request.user.role == "business_owner":
+            return obj.owner == request.user
+        return False

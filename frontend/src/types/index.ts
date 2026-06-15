@@ -252,7 +252,7 @@ export interface Reminder {
 
 // ─── Planner ──────────────────────────────────────────────────────────────────
 
-export type PlanStatus = 'draft' | 'generated' | 'completed' | 'cancelled'
+export type PlanStatus = 'draft' | 'generated' | 'planned' | 'completed' | 'cancelled'
 export type PlanSlot = 'morning' | 'afternoon' | 'evening'
 export type PlanEntityType = 'place' | 'activity' | 'event'
 
@@ -287,6 +287,41 @@ export interface PlanGenerateInput {
   budget: string
   people_count: number
   city: string
+}
+
+// ─── Plan Feedback ────────────────────────────────────────────────────────────
+
+export interface PlanFeedback {
+  id: string
+  entity_type: PlanEntityType
+  entity_id: string
+  rating: number
+  comment: string
+  created_at: string
+}
+
+export interface PlanFeedbackInput {
+  entity_type: PlanEntityType
+  entity_id: string
+  rating: number
+  comment?: string
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+
+export interface BusinessStats {
+  total_places: number
+  total_promotions: number
+  active_promotions: number
+  total_reviews: number
+  avg_rating: number | null
+}
+
+export interface OrganizerStats {
+  total_events: number
+  published_events: number
+  total_reviews: number
+  avg_rating: number | null
 }
 
 // ─── Promotions ───────────────────────────────────────────────────────────────

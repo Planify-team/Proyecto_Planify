@@ -10,8 +10,9 @@ from .selectors import get_plans_for_user, get_plan_by_id, get_plan_by_slug
 from .serializers import (
     PlanSerializer, PlanGenerateSerializer,
     PlanItemSerializer, PlanItemCreateSerializer, PlanUpdateSerializer,
+    PlanFeedbackSerializer, PlanFeedbackReadSerializer,
 )
-from .services import generate_plan, create_empty_plan, add_item, remove_item, delete_plan
+from .services import generate_plan, create_empty_plan, add_item, remove_item, delete_plan, create_plan_feedback, share_plan
 
 
 @api_view(["POST"])
@@ -122,7 +123,47 @@ def remove_plan_item(request, plan_id, item_id):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def public_plan(request, slug):
+    from apps.recommendations.services import log_interaction
     plan = get_plan_by_slug(slug)
     if not plan:
         return error_response("NOT_FOUND", "Plan no encontrado o no es público.", status_code=status.HTTP_404_NOT_FOUND)
+    if request.user.is_authenticated:
+        log_interaction(
+            user=request.user,
+            action="plan_viewed",
+            entity_type="plan",
+            entity_id=str(plan.id),
+        )
     return success_response(PlanSerializer(plan).data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def plan_share(request, plan_id):
+    plan = get_plan_by_id(plan_id, user=request.user)
+    if not plan:
+        return error_response("NOT_FOUND", "Plan no encontrado.", status_code=status.HTTP_404_NOT_FOUND)
+    share_plan(plan=plan, user=request.user)
+    return success_response({"shared": True})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def plan_feedback(request, plan_id):
+    plan = get_plan_by_id(plan_id, user=request.user)
+    if not plan:
+        return error_response("NOT_FOUND", "Plan no encontrado.", status_code=status.HTTP_404_NOT_FOUND)
+
+    serializer = PlanFeedbackSerializer(data=request.data)
+    if not serializer.is_valid():
+        return error_response("VALIDATION_ERROR", "Datos inválidos.", serializer.errors)
+
+    feedback = create_plan_feedback(
+        plan=plan,
+        user=request.user,
+        entity_type=serializer.validated_data["entity_type"],
+        entity_id=str(serializer.validated_data["entity_id"]),
+        rating=serializer.validated_data["rating"],
+        comment=serializer.validated_data.get("comment", ""),
+    )
+    return created_response(PlanFeedbackReadSerializer(feedback).data)

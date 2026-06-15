@@ -23,6 +23,8 @@ import PlannerPage from '@/features/planner/pages/PlannerPage'
 import MyPlansPage from '@/features/planner/pages/MyPlansPage'
 import PlanDetailPage from '@/features/planner/pages/PlanDetailPage'
 import PlanPublicPage from '@/features/planner/pages/PlanPublicPage'
+import BusinessDashboardPage from '@/features/dashboard/pages/BusinessDashboardPage'
+import OrganizerDashboardPage from '@/features/dashboard/pages/OrganizerDashboardPage'
 import NotFoundPage from '@/components/common/NotFoundPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -61,9 +63,11 @@ export default function AppRoutes() {
         <Route path="/places/:id"      element={<ProtectedRoute><PlaceDetail /></ProtectedRoute>} />
         <Route path="/activities/:id"  element={<ProtectedRoute><ActivityDetail /></ProtectedRoute>} />
         <Route path="/search"          element={<SearchResultsPage />} />
-        <Route path="/planner"         element={<ProtectedRoute><PlannerPage /></ProtectedRoute>} />
-        <Route path="/mis-planes"      element={<ProtectedRoute><MyPlansPage /></ProtectedRoute>} />
-        <Route path="/planes/:id"      element={<ProtectedRoute><PlanDetailPage /></ProtectedRoute>} />
+        <Route path="/planner"               element={<ProtectedRoute><PlannerPage /></ProtectedRoute>} />
+        <Route path="/mis-planes"            element={<ProtectedRoute><MyPlansPage /></ProtectedRoute>} />
+        <Route path="/planes/:id"            element={<ProtectedRoute><PlanDetailPage /></ProtectedRoute>} />
+        <Route path="/dashboard/business"    element={<ProtectedRoute><BusinessDashboardPage /></ProtectedRoute>} />
+        <Route path="/dashboard/organizer"   element={<ProtectedRoute><OrganizerDashboardPage /></ProtectedRoute>} />
       </Route>
 
       {/* Public plan page — no auth, no MainLayout */}

@@ -84,6 +84,34 @@ Todos los permisos deberán validarse desde el backend.
 
 ---
 
+### Dashboard de Negocio (Sprint 8)
+
+| Acción | admin | moderator | business_owner | event_organizer | user | guest |
+|----------|----------|----------|----------|----------|----------|----------|
+| Ver stats de negocio | Sí | No | Solo propios | No | No | No |
+| Ver lugares propios | Sí | No | Solo propios | No | No | No |
+| Ver promociones propias | Sí | No | Solo propias | No | No | No |
+
+---
+
+### Dashboard de Organizador (Sprint 8)
+
+| Acción | admin | moderator | business_owner | event_organizer | user | guest |
+|----------|----------|----------|----------|----------|----------|----------|
+| Ver stats de organizador | Sí | No | No | Solo propios | No | No |
+| Ver eventos propios (dashboard) | Sí | No | No | Solo propios | No | No |
+
+---
+
+### Plan Feedback (Sprint 8)
+
+| Acción | admin | moderator | business_owner | event_organizer | user | guest |
+|----------|----------|----------|----------|----------|----------|----------|
+| Dar feedback a ítem de plan | Sí | No | No | No | Solo plan propio | No |
+| Compartir plan (log share) | Sí | No | Sí | Sí | Sí (solo plan propio) | No |
+
+---
+
 ### Favoritos
 
 | Acción | admin | moderator | business_owner | event_organizer | user | guest |

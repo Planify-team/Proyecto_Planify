@@ -1,4 +1,4 @@
-import type { Plan, PlanSlot } from '@/types'
+import type { Plan, PlanItem, PlanSlot } from '@/types'
 import { PlanItemCard } from './PlanItemCard'
 import { SlotBadge } from './SlotBadge'
 
@@ -13,10 +13,11 @@ const SLOT_LABELS: Record<PlanSlot, string> = {
 interface Props {
   plan: Plan
   onRemoveItem?: (itemId: string) => void
+  onFeedbackItem?: (item: PlanItem) => void
   readonly?: boolean
 }
 
-export function ItineraryView({ plan, onRemoveItem, readonly = false }: Props) {
+export function ItineraryView({ plan, onRemoveItem, onFeedbackItem, readonly = false }: Props) {
   return (
     <div className="space-y-6">
       {SLOTS.map((slot) => {
@@ -38,6 +39,7 @@ export function ItineraryView({ plan, onRemoveItem, readonly = false }: Props) {
                     key={item.id}
                     item={item}
                     onRemove={onRemoveItem}
+                    onFeedback={onFeedbackItem}
                     readonly={readonly}
                   />
                 ))}

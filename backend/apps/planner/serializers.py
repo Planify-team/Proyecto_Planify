@@ -1,6 +1,6 @@
 from datetime import date as date_type
 from rest_framework import serializers
-from .models import Plan, PlanItem
+from .models import Plan, PlanItem, PlanFeedback
 
 
 class PlanItemSerializer(serializers.ModelSerializer):
@@ -47,7 +47,20 @@ class PlanItemCreateSerializer(serializers.Serializer):
 class PlanUpdateSerializer(serializers.Serializer):
     is_public = serializers.BooleanField(required=False)
     status = serializers.ChoiceField(
-        choices=["draft", "generated", "completed", "cancelled"],
+        choices=["draft", "generated", "planned", "completed", "cancelled"],
         required=False,
     )
     title = serializers.CharField(max_length=200, required=False)
+
+
+class PlanFeedbackSerializer(serializers.Serializer):
+    entity_type = serializers.ChoiceField(choices=["place", "activity", "event"])
+    entity_id = serializers.UUIDField()
+    rating = serializers.IntegerField(min_value=1, max_value=5)
+    comment = serializers.CharField(allow_blank=True, default="", max_length=1000)
+
+
+class PlanFeedbackReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlanFeedback
+        fields = ("id", "entity_type", "entity_id", "rating", "comment", "created_at")

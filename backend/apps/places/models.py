@@ -1,9 +1,17 @@
 import uuid
 from django.db import models
+from django.conf import settings
 from apps.core.models import SoftDeleteModel
 
 
 class Place(SoftDeleteModel):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="owned_places",
+    )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, default="")
     category = models.CharField(max_length=100, db_index=True)

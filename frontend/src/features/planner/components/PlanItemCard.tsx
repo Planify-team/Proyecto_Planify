@@ -1,10 +1,11 @@
-import { X } from 'lucide-react'
+import { X, Star } from 'lucide-react'
 import type { PlanItem } from '@/types'
 import { SlotBadge } from './SlotBadge'
 
 interface Props {
   item: PlanItem
   onRemove?: (itemId: string) => void
+  onFeedback?: (item: PlanItem) => void
   readonly?: boolean
 }
 
@@ -14,7 +15,7 @@ const ENTITY_LABELS: Record<string, string> = {
   event: 'Evento',
 }
 
-export function PlanItemCard({ item, onRemove, readonly = false }: Props) {
+export function PlanItemCard({ item, onRemove, onFeedback, readonly = false }: Props) {
   return (
     <div className="flex items-start gap-3 p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
       <div className="flex-1 min-w-0">
@@ -33,15 +34,27 @@ export function PlanItemCard({ item, onRemove, readonly = false }: Props) {
         )}
       </div>
 
-      {!readonly && onRemove && (
-        <button
-          onClick={() => onRemove(item.id)}
-          className="p-1 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
-          aria-label="Quitar ítem"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      )}
+      <div className="flex items-center gap-1 flex-shrink-0">
+        {onFeedback && (
+          <button
+            onClick={() => onFeedback(item)}
+            className="p-1 text-gray-400 hover:text-yellow-500 transition-colors"
+            aria-label="Calificar ítem"
+            title="Dar feedback"
+          >
+            <Star className="h-4 w-4" />
+          </button>
+        )}
+        {!readonly && onRemove && (
+          <button
+            onClick={() => onRemove(item.id)}
+            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+            aria-label="Quitar ítem"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
     </div>
   )
 }

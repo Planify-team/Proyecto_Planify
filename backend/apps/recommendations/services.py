@@ -168,6 +168,30 @@ def _day_of_week_modifier(is_outdoor: bool, category: str) -> float:
     return 0
 
 
+def _feedback_score(entity_id: str, entity_type: str) -> float:
+    """V3: weighted score from PlanFeedback. Ratings: 5→+25, 3→+5, 1→-25, others linear."""
+    from apps.planner.models import PlanFeedback
+    feedbacks = PlanFeedback.objects.filter(
+        entity_type=entity_type,
+        entity_id=entity_id,
+    ).values_list("rating", flat=True)
+    if not feedbacks:
+        return 0
+    total = 0.0
+    for r in feedbacks:
+        if r == 5:
+            total += 25
+        elif r >= 4:
+            total += 12
+        elif r == 3:
+            total += 5
+        elif r == 2:
+            total -= 10
+        else:
+            total -= 25
+    return max(-25, min(25, total / len(feedbacks)))
+
+
 def _build_reason_from_breakdown(breakdown: dict, pref_map: dict, weather_data: dict | None) -> str:
     parts = []
     if breakdown.get("preference", 0) >= 20:
@@ -247,6 +271,7 @@ def generate_recommendations_for_user(
         people_s     = _people_modifier(people, activity.min_people, activity.max_people)
         time_s       = _time_of_day_modifier(activity.indoor, activity.outdoor, activity.category)
         day_s        = _day_of_week_modifier(activity.outdoor, activity.category)
+        feedback_s   = _feedback_score(str(activity.id), "activity")
 
         breakdown = {
             "preference": round(pref_s + cat_s, 2),
@@ -257,10 +282,12 @@ def generate_recommendations_for_user(
             "budget": round(budget_s, 2),
             "time_of_day": round(time_s, 2),
             "day_of_week": round(day_s, 2),
+            "feedback_bonus": round(max(0, feedback_s), 2),
+            "feedback_penalty": round(min(0, feedback_s), 2),
         }
         score = max(0, min(100,
             pref_s + cat_s + pop_s + inter_s + weather_s
-            + dist_s + budget_s + people_s + time_s + day_s
+            + dist_s + budget_s + people_s + time_s + day_s + feedback_s
         ))
         reason = _build_reason_from_breakdown(breakdown, pref_map, weather)
         pending.append(Recommendation(
@@ -286,15 +313,16 @@ def generate_recommendations_for_user(
         proximity_bonus = WEIGHT_PROXIMITY if 0 <= days_away <= 7 else 0
         event_cost = float(event.price) if event.price else 0
 
-        pref_s   = _pref_boost(event.category, "", pref_map)
-        cat_s    = _category_score(event.category, pref_map)
-        pop_s    = _popularity_score(60)
-        inter_s  = _interaction_score_v2(event.id, interactions)
-        dist_s   = _distance_modifier(user_lat, user_lon, place_lat, place_lon)
-        budget_s = _budget_modifier(budget, event_cost)
-        age_s    = _age_modifier(user, event.minimum_age)
-        time_s   = _time_of_day_modifier(is_indoor=True, is_outdoor=False, category=event.category)
-        day_s    = _day_of_week_modifier(is_outdoor=False, category=event.category)
+        pref_s     = _pref_boost(event.category, "", pref_map)
+        cat_s      = _category_score(event.category, pref_map)
+        pop_s      = _popularity_score(60)
+        inter_s    = _interaction_score_v2(event.id, interactions)
+        dist_s     = _distance_modifier(user_lat, user_lon, place_lat, place_lon)
+        budget_s   = _budget_modifier(budget, event_cost)
+        age_s      = _age_modifier(user, event.minimum_age)
+        time_s     = _time_of_day_modifier(is_indoor=True, is_outdoor=False, category=event.category)
+        day_s      = _day_of_week_modifier(is_outdoor=False, category=event.category)
+        feedback_s = _feedback_score(str(event.id), "event")
 
         breakdown = {
             "preference": round(pref_s + cat_s, 2),
@@ -305,10 +333,12 @@ def generate_recommendations_for_user(
             "budget": round(budget_s, 2),
             "time_of_day": round(time_s, 2),
             "day_of_week": round(day_s, 2),
+            "feedback_bonus": round(max(0, feedback_s), 2),
+            "feedback_penalty": round(min(0, feedback_s), 2),
         }
         score = max(0, min(100,
             pref_s + cat_s + pop_s + proximity_bonus + inter_s
-            + dist_s + budget_s + age_s + time_s + day_s
+            + dist_s + budget_s + age_s + time_s + day_s + feedback_s
         ))
         reason = _build_reason_from_breakdown(breakdown, pref_map, None)
         pending.append(Recommendation(
@@ -327,13 +357,14 @@ def generate_recommendations_for_user(
             except Exception:
                 pass
 
-        pref_s  = _pref_boost(place.category, "", pref_map)
-        cat_s   = _category_score(place.category, pref_map)
-        pop_s   = _popularity_score(50)
-        inter_s = _interaction_score_v2(place.id, interactions)
-        dist_s  = _distance_modifier(user_lat, user_lon, place.latitude, place.longitude)
-        time_s  = _time_of_day_modifier(is_indoor=True, is_outdoor=False, category=place.category)
-        day_s   = _day_of_week_modifier(is_outdoor=False, category=place.category)
+        pref_s     = _pref_boost(place.category, "", pref_map)
+        cat_s      = _category_score(place.category, pref_map)
+        pop_s      = _popularity_score(50)
+        inter_s    = _interaction_score_v2(place.id, interactions)
+        dist_s     = _distance_modifier(user_lat, user_lon, place.latitude, place.longitude)
+        time_s     = _time_of_day_modifier(is_indoor=True, is_outdoor=False, category=place.category)
+        day_s      = _day_of_week_modifier(is_outdoor=False, category=place.category)
+        feedback_s = _feedback_score(str(place.id), "place")
 
         breakdown = {
             "preference": round(pref_s + cat_s, 2),
@@ -344,9 +375,11 @@ def generate_recommendations_for_user(
             "budget": 0,
             "time_of_day": round(time_s, 2),
             "day_of_week": round(day_s, 2),
+            "feedback_bonus": round(max(0, feedback_s), 2),
+            "feedback_penalty": round(min(0, feedback_s), 2),
         }
         score = max(0, min(100,
-            pref_s + cat_s + pop_s + inter_s + dist_s + time_s + day_s
+            pref_s + cat_s + pop_s + inter_s + dist_s + time_s + day_s + feedback_s
         ))
         reason = _build_reason_from_breakdown(breakdown, pref_map, None)
         pending.append(Recommendation(

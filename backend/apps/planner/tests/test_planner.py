@@ -275,3 +275,222 @@ class TestGeneratePlan:
         items = response.json()["data"]["items"]
         for item in items:
             assert "generation_reason" in item
+
+
+@pytest.mark.django_db
+class TestPlanShare:
+    def test_owner_can_share_plan(self, authenticated_client, plan):
+        response = authenticated_client.post(f"/api/v1/plans/{plan.id}/share/")
+        assert response.status_code == 200
+        assert response.json()["data"]["shared"] is True
+
+    def test_non_owner_cannot_share_plan(self, api_client, user_factory, plan):
+        other = user_factory(email="shareother@example.com")
+        api_client.force_authenticate(user=other)
+        response = api_client.post(f"/api/v1/plans/{plan.id}/share/")
+        assert response.status_code == 404
+
+    def test_share_logs_interaction(self, authenticated_client, plan):
+        from apps.recommendations.models import InteractionHistory
+        authenticated_client.post(f"/api/v1/plans/{plan.id}/share/")
+        assert InteractionHistory.objects.filter(
+            entity_type="plan",
+            entity_id=str(plan.id),
+            action="plan_shared",
+        ).exists()
+
+
+@pytest.mark.django_db
+class TestPlanFeedback:
+    def test_owner_can_submit_feedback(self, authenticated_client, plan, place):
+        from apps.planner.models import PlanItem
+        PlanItem.objects.create(
+            plan=plan, entity_type="place", entity_id=place.id, slot="morning", order=0
+        )
+        payload = {
+            "entity_type": "place",
+            "entity_id": str(place.id),
+            "rating": 4,
+            "comment": "Muy bueno",
+        }
+        response = authenticated_client.post(f"/api/v1/plans/{plan.id}/feedback/", payload, format="json")
+        assert response.status_code == 201
+        data = response.json()["data"]
+        assert data["rating"] == 4
+        assert data["entity_type"] == "place"
+
+    def test_feedback_is_idempotent(self, authenticated_client, plan, place):
+        payload = {
+            "entity_type": "place",
+            "entity_id": str(place.id),
+            "rating": 3,
+        }
+        authenticated_client.post(f"/api/v1/plans/{plan.id}/feedback/", payload, format="json")
+        payload["rating"] = 5
+        response = authenticated_client.post(f"/api/v1/plans/{plan.id}/feedback/", payload, format="json")
+        assert response.status_code == 201
+        from apps.planner.models import PlanFeedback
+        assert PlanFeedback.objects.filter(plan=plan, entity_type="place").count() == 1
+        assert PlanFeedback.objects.get(plan=plan, entity_type="place").rating == 5
+
+    def test_non_owner_cannot_submit_feedback(self, api_client, user_factory, plan, place):
+        other = user_factory(email="feedbackother@example.com")
+        api_client.force_authenticate(user=other)
+        payload = {"entity_type": "place", "entity_id": str(place.id), "rating": 3}
+        response = api_client.post(f"/api/v1/plans/{plan.id}/feedback/", payload, format="json")
+        assert response.status_code in (403, 404)
+
+    def test_invalid_rating_returns_400(self, authenticated_client, plan, place):
+        payload = {"entity_type": "place", "entity_id": str(place.id), "rating": 6}
+        response = authenticated_client.post(f"/api/v1/plans/{plan.id}/feedback/", payload, format="json")
+        assert response.status_code == 400
+
+
+@pytest.mark.django_db
+class TestPlaceOwnership:
+    def test_business_owner_can_create_place(self, api_client, user_factory):
+        owner = user_factory(email="biz@example.com", role="business_owner")
+        api_client.force_authenticate(user=owner)
+        payload = {
+            "name": "Mi Café",
+            "category": "cafe",
+            "address": "Av. Siempre Viva 742",
+            "city": "Buenos Aires",
+        }
+        response = api_client.post("/api/v1/places/", payload, format="json")
+        assert response.status_code == 201
+        from apps.places.models import Place
+        place = Place.objects.get(id=response.json()["data"]["id"])
+        assert place.owner == owner
+
+    def test_business_owner_can_edit_own_place(self, api_client, user_factory):
+        from apps.places.models import Place
+        owner = user_factory(email="bizedit@example.com", role="business_owner")
+        place = Place.objects.create(
+            name="Café Edit", category="cafe", address="Av 1", city="BA", owner=owner
+        )
+        api_client.force_authenticate(user=owner)
+        response = api_client.patch(f"/api/v1/places/{place.id}/", {"name": "Café Editado"}, format="json")
+        assert response.status_code == 200
+        assert response.json()["data"]["name"] == "Café Editado"
+
+    def test_business_owner_cannot_edit_other_place(self, api_client, user_factory):
+        from apps.places.models import Place
+        owner1 = user_factory(email="biz1@example.com", role="business_owner")
+        owner2 = user_factory(email="biz2@example.com", role="business_owner")
+        place = Place.objects.create(
+            name="Lugar Ajeno", category="cafe", address="Av 2", city="BA", owner=owner1
+        )
+        api_client.force_authenticate(user=owner2)
+        response = api_client.patch(f"/api/v1/places/{place.id}/", {"name": "Hack"}, format="json")
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestBusinessDashboard:
+    url_stats = "/api/v1/dashboard/business/stats/"
+    url_places = "/api/v1/dashboard/business/places/"
+    url_promotions = "/api/v1/dashboard/business/promotions/"
+
+    def test_unauthenticated_cannot_access(self, api_client):
+        assert api_client.get(self.url_stats).status_code == 401
+
+    def test_regular_user_cannot_access(self, authenticated_client):
+        assert authenticated_client.get(self.url_stats).status_code == 403
+
+    def test_business_owner_gets_stats(self, api_client, user_factory):
+        owner = user_factory(email="bizstats@example.com", role="business_owner")
+        api_client.force_authenticate(user=owner)
+        response = api_client.get(self.url_stats)
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert "total_places" in data
+        assert "active_promotions" in data
+
+    def test_business_owner_gets_own_places(self, api_client, user_factory):
+        from apps.places.models import Place
+        owner = user_factory(email="bizplaces@example.com", role="business_owner")
+        Place.objects.create(
+            name="Mi Lugar", category="restaurant", address="Calle 1", city="BA", owner=owner
+        )
+        api_client.force_authenticate(user=owner)
+        response = api_client.get(self.url_places)
+        assert response.status_code == 200
+        assert len(response.json()["data"]) >= 1
+
+
+@pytest.mark.django_db
+class TestOrganizerDashboard:
+    url_stats = "/api/v1/dashboard/organizer/stats/"
+    url_events = "/api/v1/dashboard/organizer/events/"
+
+    def test_unauthenticated_cannot_access(self, api_client):
+        assert api_client.get(self.url_stats).status_code == 401
+
+    def test_regular_user_cannot_access(self, authenticated_client):
+        assert authenticated_client.get(self.url_stats).status_code == 403
+
+    def test_event_organizer_gets_stats(self, api_client, user_factory):
+        org = user_factory(email="orgstats@example.com", role="event_organizer")
+        api_client.force_authenticate(user=org)
+        response = api_client.get(self.url_stats)
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert "total_events" in data
+        assert "published_events" in data
+
+
+@pytest.mark.django_db
+class TestRecommendationV3:
+    def test_feedback_score_positive(self):
+        from apps.recommendations.services import _feedback_score
+        from apps.places.models import Place
+        from apps.planner.models import PlanFeedback, Plan
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.create_user(
+            email="fbtest@example.com", password="pass", role="user"
+        )
+        place = Place.objects.create(
+            name="Test Place", category="cafe", address="Av 1", city="BA"
+        )
+        plan = Plan.objects.create(
+            user=user, title="FBPlan", date=date(2026, 8, 1),
+            budget=1000, people_count=1, city="BA",
+            slug="fbplan-test-001", status="generated",
+        )
+        PlanFeedback.objects.create(
+            plan=plan, user=user, entity_type="place",
+            entity_id=str(place.id), rating=5,
+        )
+        score = _feedback_score(str(place.id), "place")
+        assert score > 0
+
+    def test_feedback_score_negative(self):
+        from apps.recommendations.services import _feedback_score
+        from apps.places.models import Place
+        from apps.planner.models import PlanFeedback, Plan
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.create_user(
+            email="fbneg@example.com", password="pass", role="user"
+        )
+        place = Place.objects.create(
+            name="Bad Place", category="cafe", address="Av 2", city="BA"
+        )
+        plan = Plan.objects.create(
+            user=user, title="BadPlan", date=date(2026, 8, 2),
+            budget=1000, people_count=1, city="BA",
+            slug="badplan-test-002", status="generated",
+        )
+        PlanFeedback.objects.create(
+            plan=plan, user=user, entity_type="place",
+            entity_id=str(place.id), rating=1,
+        )
+        score = _feedback_score(str(place.id), "place")
+        assert score < 0
+
+    def test_feedback_score_empty_returns_zero(self):
+        from apps.recommendations.services import _feedback_score
+        score = _feedback_score(str(uuid.uuid4()), "place")
+        assert score == 0

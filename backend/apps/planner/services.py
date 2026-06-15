@@ -292,3 +292,49 @@ def delete_plan(plan: Plan, user) -> None:
         metadata={"title": plan.title},
     )
     plan.delete()
+
+
+def share_plan(plan: Plan, user) -> None:
+    from apps.recommendations.services import log_interaction
+    log_interaction(user=user, action="plan_shared", entity_type="plan", entity_id=str(plan.id))
+    log_action(
+        user=user, action="plan_shared",
+        entity_type="plan", entity_id=str(plan.id),
+        metadata={"slug": plan.slug},
+    )
+
+
+def create_plan_feedback(plan: Plan, user, entity_type: str, entity_id: str, rating: int, comment: str = ""):
+    from rest_framework.exceptions import ValidationError as DRFValidationError
+    from .models import PlanFeedback
+    from apps.recommendations.services import log_interaction
+
+    if plan.user != user:
+        from rest_framework.exceptions import PermissionDenied
+        raise PermissionDenied("No podés dar feedback de un plan que no es tuyo.")
+
+    if rating not in range(1, 6):
+        raise DRFValidationError({"rating": "El rating debe estar entre 1 y 5."})
+
+    feedback, created = PlanFeedback.objects.update_or_create(
+        plan=plan,
+        user=user,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        defaults={"rating": rating, "comment": comment},
+    )
+
+    log_interaction(
+        user=user,
+        action="plan_feedback",
+        entity_type=entity_type,
+        entity_id=str(entity_id),
+    )
+    log_action(
+        user=user,
+        action="plan_feedback",
+        entity_type="plan",
+        entity_id=str(plan.id),
+        metadata={"entity_type": entity_type, "entity_id": str(entity_id), "rating": rating},
+    )
+    return feedback

@@ -6,6 +6,7 @@ from django.conf import settings
 PLAN_STATUS_CHOICES = [
     ("draft", "Borrador"),
     ("generated", "Generado"),
+    ("planned", "Planificado"),
     ("completed", "Completado"),
     ("cancelled", "Cancelado"),
 ]
@@ -66,3 +67,26 @@ class PlanItem(models.Model):
 
     def __str__(self):
         return f"{self.plan.title} — {self.slot} #{self.order}"
+
+
+class PlanFeedback(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    plan = models.ForeignKey(Plan, on_delete=models.CASCADE, related_name="feedback")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="plan_feedbacks",
+    )
+    entity_type = models.CharField(max_length=20, choices=ENTITY_CHOICES)
+    entity_id = models.UUIDField()
+    rating = models.PositiveSmallIntegerField()
+    comment = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "plan_feedback"
+        ordering = ["-created_at"]
+        unique_together = ("plan", "user", "entity_type", "entity_id")
+
+    def __str__(self):
+        return f"{self.user.email} — {self.entity_type} rating {self.rating}"

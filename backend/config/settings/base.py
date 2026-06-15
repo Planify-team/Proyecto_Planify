@@ -41,6 +41,7 @@ LOCAL_APPS = [
     "apps.integrations",
     "apps.reviews",
     "apps.planner",
+    "apps.dashboard",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -175,6 +176,18 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
+
+# Celery Beat — scheduled tasks
+CELERY_BEAT_SCHEDULE = {
+    "plan-reminder-job": {
+        "task": "apps.planner.tasks.plan_reminder_job",
+        "schedule": 3600,  # cada hora
+    },
+    "plan-completion-job": {
+        "task": "apps.planner.tasks.plan_completion_job",
+        "schedule": 3600,  # cada hora
+    },
+}
 
 # External APIs
 OPENWEATHER_API_KEY = config("OPENWEATHER_API_KEY", default="")

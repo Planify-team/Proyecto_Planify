@@ -3,7 +3,7 @@ from apps.audit.services import log_action
 
 
 def create_place(*, user, **kwargs) -> Place:
-    place = Place.objects.create(**kwargs)
+    place = Place.objects.create(owner=user, **kwargs)
     log_action(user=user, action="create", entity_type="place", entity_id=str(place.id))
     return place
 

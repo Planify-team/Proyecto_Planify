@@ -92,6 +92,26 @@ services:
     networks:
       - planify_network
 
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: planify_celery_beat
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.docker
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+      - redis
+    command: ["celery", "-A", "config", "beat", "--loglevel=info"]
+    networks:
+      - planify_network
+
   frontend:
     build:
       context: ./frontend

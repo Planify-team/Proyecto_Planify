@@ -161,6 +161,7 @@ Representa un lugar físico.
 | source | String (default: 'internal', valores: 'internal', 'google') |
 | external_id | String Nullable (place_id de Google) |
 | last_synced_at | DateTime Nullable |
+| owner | FK User (Nullable, SET_NULL) — Sprint 8 |
 | is_active | Boolean |
 | created_at | DateTime |
 | updated_at | DateTime |
@@ -173,6 +174,8 @@ Representa un lugar físico.
 1 Place → N Promotions
 
 1 Place → N Activities
+
+N Places ← 1 User (owner, Sprint 8)
 ```
 
 ---
@@ -390,6 +393,10 @@ share
 search
 create_reminder
 recommendation_click
+plan_viewed     — Sprint 8: usuario autenticado abre un plan público ajeno
+plan_shared     — Sprint 8: propietario comparte su plan
+plan_feedback   — Sprint 8: propietario da feedback a un ítem del plan
+plan_completed  — Sprint 8: tarea Celery marca plan como completado
 ```
 
 ---
@@ -409,7 +416,7 @@ Resultado generado por el motor de recomendaciones.
 | place_id | FK Nullable |
 | score | Decimal |
 | recommendation_reason | Text |
-| score_breakdown | JSON (desglose de factores: preference, popularity, interaction, weather, distance, budget, time_of_day, day_of_week) |
+| score_breakdown | JSON (V3: preference, popularity, interaction, weather, distance, budget, time_of_day, day_of_week, feedback_bonus, feedback_penalty) |
 | created_at | DateTime |
 
 ### Ejemplo
@@ -475,7 +482,7 @@ Itinerario del día generado para un usuario.
 | city | String |
 | slug | String (único) |
 | is_public | Boolean |
-| status | Enum (draft, generated, completed, cancelled) |
+| status | Enum (draft, generated, planned, completed, cancelled) |
 | created_at | DateTime |
 | updated_at | DateTime |
 
@@ -484,6 +491,7 @@ Itinerario del día generado para un usuario.
 ```txt
 draft      — creado manualmente, sin itinerario generado
 generated  — itinerario generado automáticamente por el motor
+planned    — usuario confirmó que ejecutará el plan (Sprint 8)
 completed  — usuario marcó el plan como realizado
 cancelled  — plan cancelado
 ```
@@ -493,6 +501,7 @@ cancelled  — plan cancelado
 ```txt
 N Plan → 1 User
 1 Plan → N PlanItem
+1 Plan → N PlanFeedback (Sprint 8)
 ```
 
 ---
@@ -519,6 +528,40 @@ N Plan → 1 User
 
 ```txt
 N PlanItem → 1 Plan
+```
+
+---
+
+## PlanFeedback (Sprint 8)
+
+Calificación de un ítem de plan por parte de su propietario.
+
+### Campos
+
+| Campo | Tipo |
+|---------|---------|
+| id | UUID |
+| plan_id | FK Plan |
+| user_id | FK User |
+| entity_type | Enum (place, activity, event) |
+| entity_id | UUID |
+| rating | Integer (1-5) |
+| comment | Text (opcional) |
+| created_at | DateTime |
+
+### Restricciones
+
+```txt
+unique_together: (plan_id, user_id, entity_type, entity_id)
+Sólo el propietario del plan puede crear feedback.
+update_or_create — idempotente: actualiza si ya existe.
+```
+
+### Relaciones
+
+```txt
+N PlanFeedback → 1 Plan
+N PlanFeedback → 1 User
 ```
 
 ---

@@ -1,5 +1,5 @@
 import apiClient from '@/lib/axios'
-import type { ApiResponse, Plan, PlanGenerateInput } from '@/types'
+import type { ApiResponse, Plan, PlanGenerateInput, PlanFeedback, PlanFeedbackInput } from '@/types'
 
 const BASE = '/plans'
 
@@ -45,5 +45,14 @@ export const plannerService = {
 
   async removeItem(planId: string, itemId: string): Promise<void> {
     await apiClient.delete(`${BASE}/${planId}/items/${itemId}/`)
+  },
+
+  async sharePlan(planId: string): Promise<void> {
+    await apiClient.post(`${BASE}/${planId}/share/`)
+  },
+
+  async submitFeedback(planId: string, payload: PlanFeedbackInput): Promise<PlanFeedback> {
+    const { data } = await apiClient.post<ApiResponse<PlanFeedback>>(`${BASE}/${planId}/feedback/`, payload)
+    return data.data
   },
 }

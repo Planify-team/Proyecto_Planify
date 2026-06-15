@@ -21,4 +21,5 @@ urlpatterns = [
     path("external/places/", include((external_places_urlpatterns, "external-places"))),
     path("reviews/", include("apps.reviews.urls")),
     path("plans/", include("apps.planner.urls")),
+    path("dashboard/", include("apps.dashboard.urls")),
 ]

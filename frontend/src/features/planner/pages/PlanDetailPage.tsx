@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Globe, Lock } from 'lucide-react'
 import { usePlan } from '@/hooks/usePlan'
 import { useRemovePlanItem, useUpdatePlan } from '@/hooks/usePlanItem'
 import { ItineraryView } from '../components/ItineraryView'
 import { SharePlanButton } from '../components/SharePlanButton'
+import { PlanFeedbackModal } from '../components/PlanFeedbackModal'
 import Button from '@/components/ui/Button'
+import type { PlanItem } from '@/types'
 
 export default function PlanDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -13,6 +16,8 @@ export default function PlanDetailPage() {
   const { data: plan, isLoading } = usePlan(id ?? '')
   const removeItem = useRemovePlanItem(id ?? '')
   const updatePlan = useUpdatePlan(id ?? '')
+
+  const [feedbackItem, setFeedbackItem] = useState<PlanItem | null>(null)
 
   if (isLoading) {
     return (
@@ -67,6 +72,7 @@ export default function PlanDetailPage() {
           </Button>
 
           <SharePlanButton
+            planId={plan.id}
             slug={plan.slug}
             isPublic={plan.is_public}
             onMakePublic={handleMakePublic}
@@ -82,8 +88,16 @@ export default function PlanDetailPage() {
         <ItineraryView
           plan={plan}
           onRemoveItem={(itemId) => removeItem.mutate(itemId)}
+          onFeedbackItem={setFeedbackItem}
         />
       )}
+
+      <PlanFeedbackModal
+        isOpen={feedbackItem !== null}
+        onClose={() => setFeedbackItem(null)}
+        planId={plan.id}
+        item={feedbackItem}
+      />
     </div>
   )
 }
