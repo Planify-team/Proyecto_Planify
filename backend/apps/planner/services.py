@@ -74,18 +74,34 @@ def _build_item_reason(breakdown: dict, pref_map: dict, is_outdoor_friendly) -> 
     return _build_reason_from_breakdown(breakdown, pref_map, weather_data)
 
 
-def generate_plan(user, plan_date: date_type, budget: Decimal, people_count: int, city: str) -> Plan:
+SLOT_PREFERRED = {
+    "morning":   {"outdoor", "culture", "sport", "tourism", "cafe"},
+    "afternoon": {"culture", "tourism", "gastro", "other"},
+    "evening":   {"bar", "entertainment", "other"},
+}
+
+
+def _collect_candidates(
+    city: str,
+    budget_per_slot: float,
+    people_count: int,
+    is_outdoor_friendly,
+    pref_map: dict,
+    interactions: list,
+    plan_date,
+    phase: int = 1,
+) -> list[dict]:
     """
-    Generate a 3-slot itinerary plan for the given date.
-    Enforces variety: no two slots share the same broad category.
-    Prioritizes "do something" activities over pure gastronomy.
-    Weather rule: ≤5 days from today → real OpenWeather; >5 days → neutral.
+    Build the candidate pool for slot picking.
+
+    phase=1: strict — city + budget + people filters applied
+    phase=2: relaxed — city filter only, no budget/people constraints
+    phase=3: minimal — no filters, full catalogue
     """
     from apps.activities.models import Activity
     from apps.places.models import Place
     from apps.events.models import Event, EventStatus
-    from apps.users.selectors import get_user_preferences
-    from apps.recommendations.models import InteractionHistory
+    from django.db.models import Q
     from apps.recommendations.services import (
         _pref_boost,
         _popularity_score,
@@ -94,12 +110,162 @@ def generate_plan(user, plan_date: date_type, budget: Decimal, people_count: int
         _budget_modifier,
         _people_modifier,
     )
+
+    all_candidates: list[dict] = []
+
+    # ── Activities ────────────────────────────────────────────────────────────
+    activity_qs = Activity.objects.filter(is_active=True).select_related("place")
+    if phase == 1:
+        activity_qs = activity_qs.filter(
+            min_budget__lte=budget_per_slot,
+            min_people__lte=people_count,
+        )
+    if city and phase in (1, 2):
+        activity_qs = activity_qs.filter(Q(city__icontains=city) | Q(city=""))
+
+    for act in activity_qs[:80]:
+        pref_s = _pref_boost(act.category, act.activity_type, pref_map)
+        pop_s = _popularity_score(act.score_base)
+        inter_s = _interaction_score_v2(act.id, interactions)
+        weather_s = _weather_modifier(act.outdoor, act.indoor, is_outdoor_friendly)
+        budget_s = _budget_modifier(budget_per_slot, float(act.min_budget)) if phase == 1 else 0
+        people_s = _people_modifier(people_count, act.min_people, act.max_people) if phase == 1 else 0
+
+        breakdown = {
+            "preference": pref_s, "popularity": pop_s, "interaction": inter_s,
+            "weather": weather_s, "budget": budget_s, "people": people_s,
+        }
+        base_score = max(0, min(100, sum(breakdown.values())))
+        all_candidates.append({
+            "base_score": base_score + 10,  # +10 "do-something" bonus
+            "breakdown": breakdown,
+            "entity_type": "activity",
+            "entity_id": act.id,
+            "name": act.name,
+            "category": act.category,
+            "activity_type": act.activity_type,
+            "top_cat": _top_category(act.category, act.activity_type),
+        })
+
+    # ── Places ────────────────────────────────────────────────────────────────
+    place_qs = Place.objects.filter(is_active=True).exclude(
+        category__in=["Salud", "Alojamiento", "Shopping"]
+    )
+    if city and phase in (1, 2):
+        place_qs = place_qs.filter(city__icontains=city)
+
+    for place in place_qs.order_by("name")[:80]:
+        pref_s = _pref_boost(place.category, "", pref_map)
+        pop_s = max(0, 15 - place.price_level * 2)
+        inter_s = _interaction_score_v2(place.id, interactions)
+        outdoor_s = 5 if (place.outdoor_seating and is_outdoor_friendly) else 0
+
+        breakdown = {
+            "preference": pref_s, "popularity": pop_s, "interaction": inter_s,
+            "weather": outdoor_s, "budget": 0, "people": 0,
+        }
+        base_score = max(0, min(100, sum(breakdown.values())))
+        all_candidates.append({
+            "base_score": base_score,
+            "breakdown": breakdown,
+            "entity_type": "place",
+            "entity_id": place.id,
+            "name": place.name,
+            "category": place.category,
+            "activity_type": "",
+            "top_cat": _top_category(place.category, ""),
+        })
+
+    # ── Events on plan date ───────────────────────────────────────────────────
+    event_qs = Event.objects.filter(
+        status=EventStatus.PUBLISHED,
+        start_date__date=plan_date,
+    )
+    if phase == 1:
+        event_qs = event_qs.filter(price__lte=budget_per_slot)
+    if city and phase in (1, 2):
+        event_qs = event_qs.filter(place__city__icontains=city)
+
+    for event in event_qs[:15]:
+        pref_s = _pref_boost(event.category, "", pref_map)
+        inter_s = _interaction_score_v2(event.id, interactions)
+        breakdown = {
+            "preference": pref_s, "popularity": 20, "interaction": inter_s,
+            "weather": 0, "budget": 10 if phase == 1 else 0, "people": 0,
+        }
+        base_score = max(0, min(100, sum(breakdown.values())))
+        all_candidates.append({
+            "base_score": base_score,
+            "breakdown": breakdown,
+            "entity_type": "event",
+            "entity_id": event.id,
+            "name": event.title,
+            "category": event.category,
+            "activity_type": "",
+            "top_cat": _top_category(event.category, ""),
+        })
+
+    return all_candidates
+
+
+def _pick_slots(
+    all_candidates: list[dict],
+    is_outdoor_friendly,
+    pref_map: dict,
+    phase_label: str = "",
+) -> dict:
+    """
+    Pick the best candidate per slot with variety enforcement.
+    Returns slot_results dict: {slot: {entity_type, entity_id, reason}}.
+    """
+    used_ids: set = set()
+    used_cats: set = set()
+    slot_results: dict = {}
+
+    for slot in ("morning", "afternoon", "evening"):
+        preferred = SLOT_PREFERRED[slot]
+        scored = []
+        for c in all_candidates:
+            if c["entity_id"] in used_ids:
+                continue
+            total = c["base_score"] + _slot_bonus(slot, c["category"], c.get("activity_type", ""))
+            if c["top_cat"] in preferred:
+                total += 12
+            if c["top_cat"] in used_cats:
+                total -= 20
+            scored.append((min(100, total), c))
+
+        scored.sort(key=lambda x: x[0], reverse=True)
+        if scored:
+            _, best = scored[0]
+            used_ids.add(best["entity_id"])
+            used_cats.add(best["top_cat"])
+            reason = _build_item_reason(best["breakdown"], pref_map, is_outdoor_friendly)
+            if phase_label:
+                reason = f"[{phase_label}] {reason}"
+            slot_results[slot] = {
+                "entity_type": best["entity_type"],
+                "entity_id": best["entity_id"],
+                "reason": reason,
+            }
+
+    return slot_results
+
+
+def generate_plan(user, plan_date: date_type, budget: Decimal, people_count: int, city: str) -> Plan:
+    """
+    Generate a 3-slot itinerary plan for the given date.
+    Enforces variety: no two slots share the same broad category.
+    Prioritizes "do something" activities over pure gastronomy.
+    Weather rule: ≤5 days from today → real OpenWeather; >5 days → neutral.
+    """
+    from apps.users.selectors import get_user_preferences
+    from apps.recommendations.models import InteractionHistory
     from apps.integrations.providers.openweather import openweather_provider
 
     today = timezone.now().date()
     delta_days = (plan_date - today).days
 
-    # Weather rule: ≤5 days → real API, >5 days → neutral
     is_outdoor_friendly = None
     if delta_days <= 5 and user.latitude and user.longitude:
         try:
@@ -121,148 +287,11 @@ def generate_plan(user, plan_date: date_type, budget: Decimal, people_count: int
     )
 
     budget_per_slot = float(budget) / 3
-    all_candidates = []
-
-    # ── Activities — filter by own city field ─────────────────────────────────
-    activity_qs = Activity.objects.filter(
-        is_active=True,
-        min_budget__lte=budget_per_slot,
-        min_people__lte=people_count,
-    ).select_related("place")
-    if city:
-        from django.db.models import Q
-        activity_qs = activity_qs.filter(
-            Q(city__icontains=city) | Q(city="")
-        )
-
-    for act in activity_qs[:60]:
-        pref_s = _pref_boost(act.category, act.activity_type, pref_map)
-        pop_s = _popularity_score(act.score_base)
-        inter_s = _interaction_score_v2(act.id, interactions)
-        weather_s = _weather_modifier(act.outdoor, act.indoor, is_outdoor_friendly)
-        budget_s = _budget_modifier(budget_per_slot, float(act.min_budget))
-        people_s = _people_modifier(people_count, act.min_people, act.max_people)
-
-        breakdown = {
-            "preference": pref_s, "popularity": pop_s, "interaction": inter_s,
-            "weather": weather_s, "budget": budget_s, "people": people_s,
-        }
-        base_score = max(0, min(100, sum(breakdown.values())))
-
-        # Activities get a +10 "do-something" bonus to prioritize over pure gastro
-        activity_bonus = 10
-        all_candidates.append({
-            "base_score": base_score + activity_bonus,
-            "breakdown": breakdown,
-            "entity_type": "activity",
-            "entity_id": act.id,
-            "name": act.name,
-            "category": act.category,
-            "activity_type": act.activity_type,
-            "top_cat": _top_category(act.category, act.activity_type),
-        })
-
-    # ── Places — order by name, expand pool to 80 ────────────────────────────
-    place_qs = Place.objects.filter(is_active=True)
-    if city:
-        place_qs = place_qs.filter(city__icontains=city)
-    # Exclude pharmacies, hospitals, supermarkets — not entertainment
-    place_qs = place_qs.exclude(category__in=["Salud", "Alojamiento", "Shopping"])
-
-    for place in place_qs.order_by("name")[:80]:
-        pref_s = _pref_boost(place.category, "", pref_map)
-        pop_s = max(0, 15 - place.price_level * 2)
-        inter_s = _interaction_score_v2(place.id, interactions)
-
-        # Outdoor-friendly bonus when weather is good
-        outdoor_s = 5 if (place.outdoor_seating and is_outdoor_friendly) else 0
-
-        breakdown = {
-            "preference": pref_s, "popularity": pop_s, "interaction": inter_s,
-            "weather": outdoor_s, "budget": 0, "people": 0,
-        }
-        base_score = max(0, min(100, sum(breakdown.values())))
-
-        all_candidates.append({
-            "base_score": base_score,
-            "breakdown": breakdown,
-            "entity_type": "place",
-            "entity_id": place.id,
-            "name": place.name,
-            "category": place.category,
-            "activity_type": "",
-            "top_cat": _top_category(place.category, ""),
-        })
-
-    # ── Events on plan date ───────────────────────────────────────────────────
-    event_qs = Event.objects.filter(
-        status=EventStatus.PUBLISHED,
-        price__lte=budget_per_slot,
-        start_date__date=plan_date,
+    all_candidates = _collect_candidates(
+        city, budget_per_slot, people_count, is_outdoor_friendly,
+        pref_map, interactions, plan_date, phase=1,
     )
-    if city:
-        event_qs = event_qs.filter(place__city__icontains=city)
-
-    for event in event_qs[:15]:
-        pref_s = _pref_boost(event.category, "", pref_map)
-        inter_s = _interaction_score_v2(event.id, interactions)
-
-        breakdown = {
-            "preference": pref_s, "popularity": 20, "interaction": inter_s,
-            "weather": 0, "budget": 10, "people": 0,
-        }
-        base_score = max(0, min(100, sum(breakdown.values())))
-
-        all_candidates.append({
-            "base_score": base_score,
-            "breakdown": breakdown,
-            "entity_type": "event",
-            "entity_id": event.id,
-            "name": event.title,
-            "category": event.category,
-            "activity_type": "",
-            "top_cat": _top_category(event.category, ""),
-        })
-
-    # ── Pick top-1 per slot with variety enforcement ─────────────────────────
-    # Ideal arc: morning=outdoor/culture/sport, afternoon=culture/gastro/tourism, evening=bar/entertainment
-    SLOT_PREFERRED = {
-        "morning":   {"outdoor", "culture", "sport", "tourism", "cafe"},
-        "afternoon": {"culture", "tourism", "gastro", "other"},
-        "evening":   {"bar", "entertainment", "other"},
-    }
-
-    used_ids: set = set()
-    used_cats: set = set()
-    slot_results: dict = {}
-
-    for slot in ("morning", "afternoon", "evening"):
-        preferred = SLOT_PREFERRED[slot]
-        scored = []
-        for c in all_candidates:
-            if c["entity_id"] in used_ids:
-                continue
-            total = c["base_score"] + _slot_bonus(slot, c["category"], c.get("activity_type", ""))
-            # Bonus for preferred category in this slot
-            if c["top_cat"] in preferred:
-                total += 12
-            # Penalty for reusing same broad category
-            if c["top_cat"] in used_cats:
-                total -= 20
-            scored.append((min(100, total), c))
-
-        scored.sort(key=lambda x: x[0], reverse=True)
-
-        if scored:
-            _, best = scored[0]
-            used_ids.add(best["entity_id"])
-            used_cats.add(best["top_cat"])
-            reason = _build_item_reason(best["breakdown"], pref_map, is_outdoor_friendly)
-            slot_results[slot] = {
-                "entity_type": best["entity_type"],
-                "entity_id": best["entity_id"],
-                "reason": reason,
-            }
+    slot_results = _pick_slots(all_candidates, is_outdoor_friendly, pref_map)
 
     title = f"Plan para {plan_date.strftime('%d/%m/%Y')}"
     slug = _generate_slug(plan_date, user.id)
@@ -405,10 +434,17 @@ def clone_plan(source_plan: Plan, user, new_date) -> Plan:
 
 
 def generate_surprise_plan(user, plan_date=None) -> Plan:
-    from datetime import date as date_type
+    """
+    Generate a surprise plan with progressive filter relaxation:
+      Phase 1 (strict):  city + budget + people constraints
+      Phase 2 (relaxed): city only, no budget/people constraints
+      Phase 3 (minimal): no filters — always produces something
+    """
     from decimal import Decimal
-    from django.utils import timezone
     from apps.recommendations.services import log_interaction
+    from apps.users.selectors import get_user_preferences
+    from apps.recommendations.models import InteractionHistory
+    from apps.integrations.providers.openweather import openweather_provider
 
     if plan_date is None:
         plan_date = (timezone.now() + timezone.timedelta(days=1)).date()
@@ -422,7 +458,79 @@ def generate_surprise_plan(user, plan_date=None) -> Plan:
     else:
         budget = Decimal("3000.00")
 
-    plan = generate_plan(user=user, plan_date=plan_date, budget=budget, people_count=1, city=city)
+    # Shared context for all phases
+    is_outdoor_friendly = None
+    try:
+        if user.latitude and user.longitude:
+            weather = openweather_provider.get_current_weather(
+                float(user.latitude), float(user.longitude)
+            )
+            if weather:
+                is_outdoor_friendly = weather.get("is_outdoor_friendly")
+    except Exception as exc:
+        logger.warning("Weather fetch failed for surprise plan: %s", exc)
+
+    prefs = list(get_user_preferences(user))
+    pref_map = {
+        (p.value.lower() if p.value else p.category.lower()): p.weight
+        for p in prefs
+    }
+    interactions = list(
+        InteractionHistory.objects.filter(user=user).values_list("entity_id", "action")
+    )
+    budget_per_slot = float(budget) / 3
+
+    PHASES = [
+        (1, city,  budget_per_slot, 1,  ""),
+        (2, city,  budget_per_slot, 1,  "Sugerencia fuera de tu rango de presupuesto habitual"),
+        (3, "",    budget_per_slot, 1,  "Plan genérico — configurá tu ciudad para mejores resultados"),
+    ]
+
+    slot_results: dict = {}
+    for phase, phase_city, bps, people, phase_label in PHASES:
+        candidates = _collect_candidates(
+            phase_city, bps, people, is_outdoor_friendly,
+            pref_map, interactions, plan_date, phase=phase,
+        )
+        slot_results = _pick_slots(candidates, is_outdoor_friendly, pref_map, phase_label)
+        if slot_results:
+            logger.info("Surprise plan generated in phase %d for user %s", phase, user.id)
+            break
+
+    title = f"Plan para {plan_date.strftime('%d/%m/%Y')}"
+    slug = _generate_slug(plan_date, user.id)
+
+    plan = Plan.objects.create(
+        user=user,
+        title=title,
+        date=plan_date,
+        budget=budget,
+        people_count=1,
+        city=city,
+        slug=slug,
+        is_public=False,
+        status="generated",
+    )
+
+    for order, slot in enumerate(("morning", "afternoon", "evening")):
+        if slot in slot_results:
+            item_data = slot_results[slot]
+            PlanItem.objects.create(
+                plan=plan,
+                entity_type=item_data["entity_type"],
+                entity_id=item_data["entity_id"],
+                slot=slot,
+                order=order,
+                generation_reason=item_data["reason"],
+            )
+
+    log_action(
+        user=user,
+        action="create_plan",
+        entity_type="plan",
+        entity_id=str(plan.id),
+        metadata={"title": title, "date": str(plan_date), "city": city, "mode": "surprise"},
+    )
     log_interaction(user=user, action="plan_surprise", entity_type="plan", entity_id=str(plan.id))
     return plan
 

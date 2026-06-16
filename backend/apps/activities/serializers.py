@@ -13,7 +13,10 @@ class ActivitySerializer(serializers.ModelSerializer):
             "id", "name", "description", "category", "activity_type",
             "min_budget", "max_budget", "min_people", "max_people",
             "indoor", "outdoor", "score_base", "is_active", "place", "place_name",
-            "avg_rating", "review_count", "created_at", "updated_at",
+            "avg_rating", "review_count",
+            "latitude", "longitude", "address", "is_free",
+            "external_url", "image_url", "source",
+            "city", "created_at", "updated_at",
         )
         read_only_fields = ("id", "created_at", "updated_at")
 

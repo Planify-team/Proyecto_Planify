@@ -240,7 +240,8 @@ Actividad genérica sugerida por el sistema.
 | Campo | Tipo |
 |---------|---------|
 | id | UUID |
-| place_id | FK |
+| place_id | FK (optional) |
+| city | String |
 | name | String |
 | description | Text |
 | category | String |
@@ -252,6 +253,14 @@ Actividad genérica sugerida por el sistema.
 | indoor | Boolean |
 | outdoor | Boolean |
 | score_base | Integer |
+| latitude | Decimal (optional) |
+| longitude | Decimal (optional) |
+| address | String |
+| is_free | Boolean (nullable) |
+| external_url | URL |
+| image_url | URL |
+| source | String (`manual`, `gcba`, `opentripmap`) |
+| external_id | String (for deduplication on re-import) |
 | is_active | Boolean |
 | created_at | DateTime |
 | updated_at | DateTime |

@@ -158,6 +158,15 @@ export interface Activity {
   is_active: boolean
   avg_rating: number | null
   review_count: number
+  city: string
+  // Enrichment fields (Sprint 11)
+  latitude: string | null
+  longitude: string | null
+  address: string
+  is_free: boolean | null
+  external_url: string
+  image_url: string
+  source: string
 }
 
 // ─── Favorites ────────────────────────────────────────────────────────────────

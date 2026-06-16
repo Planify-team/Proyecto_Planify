@@ -35,6 +35,15 @@ class Activity(SoftDeleteModel):
     indoor = models.BooleanField(default=False)
     outdoor = models.BooleanField(default=False)
     score_base = models.PositiveSmallIntegerField(default=50)
+    # Enrichment fields — populated by GCBA/OpenTripMap importers
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    address = models.CharField(max_length=300, blank=True, default="")
+    is_free = models.BooleanField(null=True, blank=True)
+    external_url = models.URLField(blank=True, default="")
+    image_url = models.URLField(blank=True, default="")
+    source = models.CharField(max_length=50, blank=True, default="manual", db_index=True)
+    external_id = models.CharField(max_length=200, blank=True, default="", db_index=True)
 
     class Meta:
         db_table = "activities"
