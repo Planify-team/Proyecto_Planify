@@ -26,6 +26,12 @@ class Place(SoftDeleteModel):
     source = models.CharField(max_length=20, default="internal", db_index=True)
     external_id = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
+    opening_hours = models.CharField(max_length=500, blank=True, default="")
+    cuisine = models.CharField(max_length=200, blank=True, default="")
+    fee = models.BooleanField(null=True, blank=True)
+    outdoor_seating = models.BooleanField(null=True, blank=True)
+    wheelchair = models.CharField(max_length=20, blank=True, default="")
+    internet_access = models.BooleanField(null=True, blank=True)
 
     class Meta:
         db_table = "places"

@@ -67,6 +67,14 @@ _TYPE_TO_FILTER: dict[str, str] = {
     "shopping": '["shop"~"mall|supermarket"]',
 }
 
+def _parse_bool_tag(value: str | None) -> bool | None:
+    if value in ("yes", "true", "1"):
+        return True
+    if value in ("no", "false", "0"):
+        return False
+    return None
+
+
 _DEFAULT_AMENITIES = "restaurant|fast_food|bar|pub|cafe|ice_cream|museum|cinema|nightclub|theatre|arts_centre|library|biergarten"
 _DEFAULT_LEISURE = "park|fitness_centre|sports_centre|stadium|swimming_pool|golf_course|miniature_golf|bowling_alley|escape_game|amusement_arcade"
 _DEFAULT_TOURISM = "attraction|viewpoint|zoo|theme_park|aquarium|artwork"
@@ -146,6 +154,13 @@ class OverpassProvider:
                 "source": "osm",
                 "phone": tags.get("phone") or tags.get("contact:phone") or "",
                 "website": tags.get("website") or tags.get("contact:website") or "",
+                "opening_hours": tags.get("opening_hours", ""),
+                "cuisine": tags.get("cuisine", ""),
+                "fee": _parse_bool_tag(tags.get("fee")),
+                "outdoor_seating": _parse_bool_tag(tags.get("outdoor_seating")),
+                "wheelchair": tags.get("wheelchair", ""),
+                "internet_access": _parse_bool_tag(tags.get("internet_access") or tags.get("wifi")),
+                "description": tags.get("description") or tags.get("note") or "",
             })
         return results
 

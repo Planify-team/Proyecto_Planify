@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Globe, Lock, Copy } from 'lucide-react'
 import { usePlan } from '@/hooks/usePlan'
 import { useRemovePlanItem, useUpdatePlan, useUpdatePlanItem, useClonePlan } from '@/hooks/usePlanItem'
+import { useForecast } from '@/hooks/useForecast'
 import { ItineraryView } from '../components/ItineraryView'
 import { SharePlanButton } from '../components/SharePlanButton'
 import { PlanFeedbackModal } from '../components/PlanFeedbackModal'
 import { CalendarExportButton } from '../components/CalendarExportButton'
 import { ClonePlanModal } from '../components/ClonePlanModal'
+import WeatherForecastWidget from '@/components/ui/WeatherForecastWidget'
 import Button from '@/components/ui/Button'
 import type { PlanItem } from '@/types'
 
@@ -23,6 +25,15 @@ export default function PlanDetailPage() {
 
   const [feedbackItem, setFeedbackItem] = useState<PlanItem | null>(null)
   const [showCloneModal, setShowCloneModal] = useState(false)
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null)
+  const { data: forecast, isLoading: forecastLoading } = useForecast(coords)
+
+  useEffect(() => {
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      () => setCoords(null),
+    )
+  }, [])
 
   if (isLoading) {
     return (
@@ -125,6 +136,20 @@ export default function PlanDetailPage() {
           />
         </div>
       </div>
+
+      {/* Forecast for plan date (only for future plans) */}
+      {plan.date >= new Date().toISOString().slice(0, 10) && coords && (
+        <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <h2 className="text-sm font-semibold text-gray-600 mb-2">
+            Pronóstico para el {new Date(plan.date + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </h2>
+          <WeatherForecastWidget
+            forecast={forecast}
+            isLoading={forecastLoading}
+            highlightDate={plan.date}
+          />
+        </div>
+      )}
 
       {plan.items.length === 0 ? (
         <div className="text-sm text-gray-500 italic">

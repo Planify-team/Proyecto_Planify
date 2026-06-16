@@ -81,6 +81,13 @@ export interface Place {
   is_active: boolean
   avg_rating: number | null
   review_count: number
+  opening_hours: string
+  cuisine: string
+  fee: boolean | null
+  outdoor_seating: boolean | null
+  wheelchair: string
+  internet_access: boolean | null
+  is_open_now: boolean | null
   created_at: string
   updated_at: string
 }
@@ -94,6 +101,17 @@ export interface Weather {
   humidity: number
   wind_speed: number
   clouds: number
+  is_outdoor_friendly: boolean
+}
+
+export interface ForecastDay {
+  date: string
+  day_name: string
+  condition: string
+  description: string
+  temp_min: number
+  temp_max: number
+  precipitation_mm: number
   is_outdoor_friendly: boolean
 }
 

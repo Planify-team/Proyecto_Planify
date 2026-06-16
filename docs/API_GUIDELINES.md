@@ -185,9 +185,33 @@ Retorna entidades más agregadas a favoritos en los últimos 30 días. Máximo 6
 GET /api/v1/weather/current/?lat={lat}&lon={lon}
 ```
 
-Respuesta exitosa: `{"success": true, "data": {"temperature": 18, "feels_like": 16, "condition": "Clear", ...}}`
+Respuesta exitosa: `{"success": true, "data": {"temperature": 18, "feels_like": 16, "condition": "Clear", "is_outdoor_friendly": true, ...}}`
 
 Fallback (API caída o sin key): `{"success": true, "data": null}`
+
+```txt
+GET /api/v1/weather/forecast/?lat={lat}&lon={lon}
+```
+
+Devuelve pronóstico de 5 días agrupado por día. Requiere autenticación. Cacheado 3h en Redis.
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "date": "2026-06-17",
+      "day_name": "Miércoles",
+      "condition": "Clear",
+      "description": "cielo despejado",
+      "temp_min": 10.0,
+      "temp_max": 22.0,
+      "precipitation_mm": 0.0,
+      "is_outdoor_friendly": true
+    }
+  ]
+}
+```
 
 ### Lugares externos
 
@@ -196,7 +220,17 @@ GET /api/v1/external/places/?lat={lat}&lon={lon}&radius={m}&type={type}
 GET /api/v1/external/places/search/?q={query}&lat={lat}&lon={lon}
 ```
 
-Ambos endpoints devuelven el mismo formato que `/api/v1/places/`. El campo `source` indica el origen ('internal' o 'google').
+Ambos endpoints devuelven el mismo formato que `/api/v1/places/` incluyendo campos enriquecidos de Sprint 10. El campo `source` indica el origen ('internal' o 'osm').
+
+### Filtros nuevos en `/api/v1/places/` (Sprint 10)
+
+```txt
+?outdoor_seating=true|false   → lugares con/sin terraza exterior
+?fee=true|false               → lugares con entrada paga o gratuita
+?wheelchair=yes|limited       → accesibilidad en silla de ruedas
+?cuisine={tipo}               → tipo de cocina (icontains)
+?open_now=true                → solo lugares abiertos ahora (filtro post-query en Python)
+```
 
 ---
 

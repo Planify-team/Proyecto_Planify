@@ -45,6 +45,33 @@ class WeatherCurrentView(APIView):
         return success_response(weather)
 
 
+class WeatherForecastView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        lat, err = _parse_coord(request.query_params.get("lat"), "lat", -90, 90)
+        if err:
+            return error_response("INVALID_PARAM", err, status_code=status.HTTP_400_BAD_REQUEST)
+
+        lon, err = _parse_coord(request.query_params.get("lon"), "lon", -180, 180)
+        if err:
+            return error_response("INVALID_PARAM", err, status_code=status.HTTP_400_BAD_REQUEST)
+
+        if lat is None or lon is None:
+            return error_response(
+                "MISSING_PARAMS", "Se requieren lat y lon.",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
+        forecast = openweather_provider.get_forecast(lat, lon)
+        if forecast is None:
+            return error_response(
+                "SERVICE_UNAVAILABLE", "No se pudo obtener el pronóstico del tiempo.",
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        return success_response(forecast)
+
+
 class ExternalPlacesView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -145,6 +172,7 @@ def _serialize_place(place) -> dict:
     return {
         "id": str(place.id),
         "name": place.name,
+        "description": place.description,
         "category": place.category,
         "address": place.address,
         "city": place.city,
@@ -155,4 +183,10 @@ def _serialize_place(place) -> dict:
         "image_url": place.image_url,
         "price_level": place.price_level,
         "source": place.source,
+        "opening_hours": place.opening_hours,
+        "cuisine": place.cuisine,
+        "fee": place.fee,
+        "outdoor_seating": place.outdoor_seating,
+        "wheelchair": place.wheelchair,
+        "internet_access": place.internet_access,
     }

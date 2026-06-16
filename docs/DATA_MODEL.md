@@ -158,9 +158,16 @@ Representa un lugar físico.
 | website | String |
 | image_url | String |
 | price_level | Integer |
-| source | String (default: 'internal', valores: 'internal', 'google') |
-| external_id | String Nullable (place_id de Google) |
+| source | String (default: 'internal', valores: 'internal', 'osm') |
+| external_id | String Nullable (external_id de OSM: "osm:node:{id}") |
 | last_synced_at | DateTime Nullable |
+| opening_hours | String (formato raw de OSM, e.g. "Mo-Fr 09:00-20:00") — Sprint 10 |
+| cuisine | String (e.g. "pizza", "italian;pizza") — Sprint 10 |
+| fee | Boolean Nullable (True=paga, False=gratis, null=desconocido) — Sprint 10 |
+| outdoor_seating | Boolean Nullable — Sprint 10 |
+| wheelchair | String ("yes", "limited", "no", "") — Sprint 10 |
+| internet_access | Boolean Nullable — Sprint 10 |
+| is_open_now | Campo calculado (no almacenado) — calculado en PlaceSerializer — Sprint 10 |
 | owner | FK User (Nullable, SET_NULL) — Sprint 8 |
 | is_active | Boolean |
 | created_at | DateTime |

@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     WeatherCurrentView,
+    WeatherForecastView,
     ExternalPlacesView,
     ExternalPlacesSearchView,
     GeocodingView,
@@ -9,6 +10,7 @@ from .views import (
 
 weather_urlpatterns = [
     path("current/", WeatherCurrentView.as_view(), name="weather-current"),
+    path("forecast/", WeatherForecastView.as_view(), name="weather-forecast"),
 ]
 
 external_places_urlpatterns = [

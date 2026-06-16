@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CalendarDays, Sparkles } from 'lucide-react'
 import { PlannerForm } from '../components/PlannerForm'
@@ -6,6 +6,8 @@ import { ItineraryView } from '../components/ItineraryView'
 import { InspireFeed } from '../components/InspireFeed'
 import { usePlanner } from '@/hooks/usePlanner'
 import { useSurprisePlan } from '@/hooks/usePlanItem'
+import { useForecast } from '@/hooks/useForecast'
+import WeatherForecastWidget from '@/components/ui/WeatherForecastWidget'
 import type { Plan } from '@/types'
 
 export default function PlannerPage() {
@@ -13,8 +15,19 @@ export default function PlannerPage() {
   const planner = usePlanner()
   const surprise = useSurprisePlan()
   const [currentPlan, setCurrentPlan] = useState<Plan | null>(null)
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string>('')
+  const { data: forecast, isLoading: forecastLoading } = useForecast(coords)
+
+  useEffect(() => {
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      () => setCoords(null),
+    )
+  }, [])
 
   const handleSubmit = (input: Parameters<typeof planner.mutate>[0]) => {
+    setSelectedDate(input.date)
     planner.mutate(input, {
       onSuccess: (plan) => setCurrentPlan(plan),
     })
@@ -36,6 +49,18 @@ export default function PlannerPage() {
           <p className="text-sm text-gray-500">Generá tu itinerario del día en segundos</p>
         </div>
       </div>
+
+      {/* 5-day forecast */}
+      {(coords || forecastLoading) && (
+        <div>
+          <h2 className="text-sm font-semibold text-gray-600 mb-2">Pronóstico de la semana</h2>
+          <WeatherForecastWidget
+            forecast={forecast}
+            isLoading={forecastLoading}
+            highlightDate={selectedDate}
+          />
+        </div>
+      )}
 
       {/* Surprise button */}
       <div className="flex flex-col items-center gap-2 p-5 bg-gradient-to-r from-primary-50 to-purple-50 rounded-xl border border-primary-100">

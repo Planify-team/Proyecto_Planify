@@ -5,7 +5,7 @@
 ## Estado
 
 ```txt
-SPRINT_10_STATUS: PLANNED
+SPRINT_10_STATUS: RICH_DATA_AND_FORECAST
 ```
 
 ---

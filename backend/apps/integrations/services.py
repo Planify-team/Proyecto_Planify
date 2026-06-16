@@ -55,12 +55,53 @@ def search_external_places(query: str, lat: float, lon: float) -> list:
     return _upsert_places(raw_results)
 
 
+def _auto_description(item: dict) -> str:
+    category = item.get("category", "")
+    city = item.get("city", "")
+    cuisine = item.get("cuisine", "")
+    outdoor_seating = item.get("outdoor_seating")
+    fee = item.get("fee")
+
+    if cuisine:
+        cuisine_clean = cuisine.split(";")[0].strip().lower()
+        cuisine_map = {
+            "pizza": "Pizzería",
+            "sushi": "Restaurante de sushi",
+            "burger": "Hamburguesería",
+            "italian": "Restaurante italiano",
+            "chinese": "Restaurante chino",
+            "mexican": "Restaurante mexicano",
+            "argentinian": "Restaurante argentino",
+            "seafood": "Restaurante de mariscos",
+            "vegetarian": "Restaurante vegetariano",
+            "vegan": "Restaurante vegano",
+        }
+        label = cuisine_map.get(cuisine_clean, f"Restaurante de {cuisine_clean}")
+        if city:
+            return f"{label} en {city}"
+        return label
+
+    if category == "Parque":
+        return f"Espacio verde en {city}" if city else "Espacio verde"
+    if category == "Museo" and fee is False:
+        return f"Museo de entrada gratuita en {city}" if city else "Museo de entrada gratuita"
+    if category == "Museo":
+        return f"Museo en {city}" if city else "Museo"
+    if outdoor_seating is True:
+        return f"{category} con terraza exterior en {city}" if city else f"{category} con terraza exterior"
+
+    if city:
+        return f"{category} en {city}"
+    return category or "Lugar"
+
+
 def _upsert_places(raw_results: list) -> list:
     now = timezone.now()
     places = []
     for item in raw_results:
         if not item.get("external_id") or not item.get("latitude") or not item.get("longitude"):
             continue
+        description = item.get("description", "") or _auto_description(item)
         place, _ = Place.objects.update_or_create(
             external_id=item["external_id"],
             defaults={
@@ -76,6 +117,13 @@ def _upsert_places(raw_results: list) -> list:
                 "source": "osm",
                 "last_synced_at": now,
                 "is_active": True,
+                "opening_hours": item.get("opening_hours", ""),
+                "cuisine": item.get("cuisine", ""),
+                "fee": item.get("fee"),
+                "outdoor_seating": item.get("outdoor_seating"),
+                "wheelchair": item.get("wheelchair", ""),
+                "internet_access": item.get("internet_access"),
+                "description": description,
             },
         )
         places.append(place)

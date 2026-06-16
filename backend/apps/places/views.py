@@ -14,7 +14,28 @@ def place_list(request):
     if request.method == "GET":
         city = request.query_params.get("city")
         category = request.query_params.get("category")
-        places = get_active_places(city=city, category=category)
+        cuisine = request.query_params.get("cuisine") or None
+        wheelchair = request.query_params.get("wheelchair") or None
+
+        def _parse_bool_param(val):
+            if val == "true":
+                return True
+            if val == "false":
+                return False
+            return None
+
+        outdoor_seating = _parse_bool_param(request.query_params.get("outdoor_seating"))
+        fee = _parse_bool_param(request.query_params.get("fee"))
+
+        places = get_active_places(
+            city=city, category=category, cuisine=cuisine, wheelchair=wheelchair,
+            outdoor_seating=outdoor_seating, fee=fee,
+        )
+
+        if request.query_params.get("open_now") == "true":
+            from .utils import OpeningHoursParser
+            places = [p for p in places if OpeningHoursParser.is_open(p.opening_hours) is True]
+
         return success_response(PlaceSerializer(places, many=True).data)
 
     serializer = PlaceCreateSerializer(data=request.data)

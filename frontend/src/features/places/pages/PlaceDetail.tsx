@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { MapPin, Phone, Globe, DollarSign, ArrowLeft } from 'lucide-react'
+import { MapPin, Phone, Globe, DollarSign, ArrowLeft, Clock, Wifi, TreePine, Ticket, Accessibility } from 'lucide-react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import { usePlace } from '@/hooks/usePlaces'
 import { usePromotions } from '@/hooks/usePromotions'
@@ -77,6 +77,64 @@ export default function PlaceDetail() {
 
       {place.description && (
         <p className="text-gray-600 leading-relaxed">{place.description}</p>
+      )}
+
+      {/* Enriched place info */}
+      {(place.opening_hours || place.cuisine || place.fee !== null || place.outdoor_seating !== null || place.internet_access !== null || place.wheelchair) && (
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Información del lugar</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
+              <span className="text-gray-500">Horario:</span>
+              <span className="text-gray-800 truncate">
+                {place.opening_hours || 'Sin información'}
+                {place.is_open_now === true && (
+                  <span className="ml-2 text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">Abierto</span>
+                )}
+                {place.is_open_now === false && (
+                  <span className="ml-2 text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full">Cerrado</span>
+                )}
+              </span>
+            </div>
+            {place.cuisine && (
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Tipo:</span>
+                <span className="text-gray-800">{place.cuisine.replace(/;/g, ', ')}</span>
+              </div>
+            )}
+            {place.fee !== null && (
+              <div className="flex items-center gap-2">
+                <Ticket className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <span className="text-gray-500">Entrada:</span>
+                <span className="text-gray-800">{place.fee ? 'Paga' : 'Gratuita'}</span>
+              </div>
+            )}
+            {place.outdoor_seating !== null && (
+              <div className="flex items-center gap-2">
+                <TreePine className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <span className="text-gray-500">Terraza:</span>
+                <span className="text-gray-800">{place.outdoor_seating ? 'Sí' : 'No'}</span>
+              </div>
+            )}
+            {place.internet_access !== null && (
+              <div className="flex items-center gap-2">
+                <Wifi className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <span className="text-gray-500">Wifi:</span>
+                <span className="text-gray-800">{place.internet_access ? 'Disponible' : 'No'}</span>
+              </div>
+            )}
+            {place.wheelchair && (
+              <div className="flex items-center gap-2">
+                <Accessibility className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <span className="text-gray-500">Acceso:</span>
+                <span className="text-gray-800">
+                  {place.wheelchair === 'yes' ? 'Apto' : place.wheelchair === 'limited' ? 'Limitado' : 'No apto'}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

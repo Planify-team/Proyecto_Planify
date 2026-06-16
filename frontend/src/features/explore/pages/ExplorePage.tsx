@@ -15,7 +15,17 @@ import EmptyState from '@/components/common/EmptyState'
 
 type Tab = 'lugares' | 'actividades' | 'eventos' | 'cerca'
 
-interface PlaceFilters { city?: string; category?: string; lat?: number; lon?: number; radius_km?: number }
+interface PlaceFilters {
+  city?: string
+  category?: string
+  lat?: number
+  lon?: number
+  radius_km?: number
+  outdoor_seating?: boolean
+  fee?: boolean
+  wheelchair?: string
+  cuisine?: string
+}
 interface ActivityFilters { category?: string; indoor?: boolean; outdoor?: boolean; free?: boolean }
 interface EventFilters { category?: string; date_from?: string; date_to?: string; free?: boolean }
 
@@ -36,6 +46,10 @@ export default function ExplorePage() {
   const places = usePlaces({
     city: tab === 'lugares' ? (placeFilters.city || search || undefined) : undefined,
     category: tab === 'lugares' ? placeFilters.category : undefined,
+    outdoor_seating: tab === 'lugares' ? placeFilters.outdoor_seating : undefined,
+    fee: tab === 'lugares' ? placeFilters.fee : undefined,
+    wheelchair: tab === 'lugares' ? placeFilters.wheelchair : undefined,
+    cuisine: tab === 'lugares' ? placeFilters.cuisine : undefined,
   })
 
   const activities = useActivities({
@@ -100,7 +114,8 @@ export default function ExplorePage() {
   }, [])
 
   const activeFilterCount = tab === 'lugares'
-    ? Object.values(placeFilters).filter(Boolean).length
+    ? Object.values(placeFilters).filter((v) => v !== undefined && v !== false).length
+    + (placeFilters.fee === false ? 1 : 0)
     : tab === 'actividades'
     ? Object.values(activityFilters).filter((v) => v !== undefined && v !== false).length
     : tab === 'eventos'
@@ -162,6 +177,32 @@ export default function ExplorePage() {
               className="filter-input"
             />
           </FilterRow>
+          <FilterRow label="Tipo de cocina">
+            <input
+              type="text"
+              value={placeFilters.cuisine ?? ''}
+              onChange={(e) => setPlaceFilters((f) => ({ ...f, cuisine: e.target.value || undefined }))}
+              placeholder="ej. pizza, sushi"
+              className="filter-input"
+            />
+          </FilterRow>
+          <div className="flex flex-wrap gap-4">
+            <CheckFilter
+              label="Solo con terraza"
+              checked={placeFilters.outdoor_seating ?? false}
+              onChange={(v) => setPlaceFilters((f) => ({ ...f, outdoor_seating: v || undefined }))}
+            />
+            <CheckFilter
+              label="Entrada gratuita"
+              checked={placeFilters.fee === false}
+              onChange={(v) => setPlaceFilters((f) => ({ ...f, fee: v ? false : undefined }))}
+            />
+            <CheckFilter
+              label="Acceso en silla"
+              checked={placeFilters.wheelchair === 'limited'}
+              onChange={(v) => setPlaceFilters((f) => ({ ...f, wheelchair: v ? 'limited' : undefined }))}
+            />
+          </div>
           <button
             onClick={() => setPlaceFilters({})}
             className="text-xs text-red-500 hover:underline self-start"

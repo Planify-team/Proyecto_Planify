@@ -4,6 +4,14 @@ import type { ApiResponse, Place } from '@/types'
 interface PlacesFilters {
   city?: string
   category?: string
+  lat?: number
+  lon?: number
+  radius_km?: number
+  outdoor_seating?: boolean
+  fee?: boolean
+  wheelchair?: string
+  cuisine?: string
+  open_now?: boolean
 }
 
 export const placesService = {

@@ -11,7 +11,10 @@ def _rating_subquery(entity_type: str):
     )
 
 
-def get_active_places(city=None, category=None, lat=None, lon=None, radius_km=None, name=None):
+def get_active_places(
+    city=None, category=None, lat=None, lon=None, radius_km=None, name=None,
+    outdoor_seating=None, fee=None, wheelchair=None, cuisine=None,
+):
     from apps.reviews.models import Review
     qs = Place.objects.filter(is_active=True)
     if name:
@@ -27,6 +30,16 @@ def get_active_places(city=None, category=None, lat=None, lon=None, radius_km=No
             latitude__range=(float(lat) - lat_range, float(lat) + lat_range),
             longitude__range=(float(lon) - lon_range, float(lon) + lon_range),
         )
+    if outdoor_seating is not None:
+        qs = qs.filter(outdoor_seating=outdoor_seating)
+    if fee is not None:
+        qs = qs.filter(fee=fee)
+    if wheelchair == "yes":
+        qs = qs.filter(wheelchair="yes")
+    elif wheelchair == "limited":
+        qs = qs.filter(wheelchair__in=["yes", "limited"])
+    if cuisine:
+        qs = qs.filter(cuisine__icontains=cuisine)
     avg_sub = _rating_subquery("place").annotate(a=Avg("stars")).values("a")[:1]
     cnt_sub = _rating_subquery("place").annotate(c=Count("id")).values("c")[:1]
     qs = qs.annotate(avg_rating=Subquery(avg_sub), review_count=Subquery(cnt_sub))
