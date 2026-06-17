@@ -10,16 +10,16 @@ import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 
 const PREFERENCE_OPTIONS = [
-  { category: 'tipo', value: 'música' },
-  { category: 'tipo', value: 'gastronomía' },
-  { category: 'tipo', value: 'cine' },
-  { category: 'tipo', value: 'deportes' },
-  { category: 'tipo', value: 'outdoor' },
-  { category: 'tipo', value: 'indoor' },
-  { category: 'tipo', value: 'tecnología' },
-  { category: 'tipo', value: 'turismo' },
-  { category: 'tipo', value: 'arte' },
-  { category: 'tipo', value: 'gaming' },
+  { category: 'entertainment', value: 'música',     emoji: '🎵', label: 'Música' },
+  { category: 'entertainment', value: 'cine',        emoji: '🎬', label: 'Cine' },
+  { category: 'entertainment', value: 'gaming',      emoji: '🎮', label: 'Gaming' },
+  { category: 'food',          value: 'gastronomía', emoji: '🍽️', label: 'Gastronomía' },
+  { category: 'sports',        value: 'deportes',    emoji: '⚽', label: 'Deportes' },
+  { category: 'outdoor',       value: 'outdoor',     emoji: '🏕️', label: 'Outdoor' },
+  { category: 'culture',       value: 'arte',        emoji: '🎨', label: 'Arte' },
+  { category: 'culture',       value: 'turismo',     emoji: '✈️', label: 'Turismo' },
+  { category: 'technology',    value: 'tecnología',  emoji: '💻', label: 'Tecnología' },
+  { category: 'lifestyle',     value: 'bienestar',   emoji: '🧘', label: 'Bienestar' },
 ]
 
 export default function ProfilePage() {
@@ -35,7 +35,7 @@ export default function ProfilePage() {
   const existingValues = new Set(preferences.map((p) => p.value))
 
   const handleAdd = (value: string, category: string) => {
-    const newPref = { category, value, weight: 5 }
+    const newPref = { category, value, weight: 3 }
     const all = [...preferences.map((p) => ({ category: p.category, value: p.value, weight: p.weight })), newPref]
     setPrefs.mutate(all)
     setAdding(false)
@@ -100,9 +100,10 @@ export default function ProfilePage() {
                 <button
                   key={opt.value}
                   onClick={() => handleAdd(opt.value, opt.category)}
-                  className="px-3 py-1 text-sm rounded-full border border-primary-300 text-primary-700 hover:bg-primary-50 transition-colors capitalize"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full border border-primary-300 text-primary-700 hover:bg-primary-50 transition-colors"
                 >
-                  {opt.value}
+                  <span>{opt.emoji}</span>
+                  {opt.label}
                 </button>
               ))}
               {PREFERENCE_OPTIONS.every((o) => existingValues.has(o.value)) && (

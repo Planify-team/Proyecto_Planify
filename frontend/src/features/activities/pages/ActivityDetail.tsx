@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { DollarSign, Users, Home, Cloud, ArrowLeft, Tag } from 'lucide-react'
+import { DollarSign, Users, MapPin, ArrowLeft, Tag } from 'lucide-react'
 import { useActivity } from '@/hooks/useActivities'
 import Loading from '@/components/common/Loading'
 import Button from '@/components/ui/Button'
@@ -97,14 +97,10 @@ export default function ActivityDetail() {
         </div>
 
         <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
-          {activity.indoor ? (
-            <Home className="h-5 w-5 text-primary-600 flex-shrink-0" />
-          ) : (
-            <Cloud className="h-5 w-5 text-primary-600 flex-shrink-0" />
-          )}
-          <div>
-            <p className="text-xs text-gray-500">Score base</p>
-            <p className="text-sm font-medium text-gray-900">{activity.score_base}/100</p>
+          <MapPin className="h-5 w-5 text-primary-600 flex-shrink-0" />
+          <div className="min-w-0">
+            <p className="text-xs text-gray-500">Ciudad</p>
+            <p className="text-sm font-medium text-gray-900 truncate">{activity.city || 'Buenos Aires'}</p>
           </div>
         </div>
       </div>

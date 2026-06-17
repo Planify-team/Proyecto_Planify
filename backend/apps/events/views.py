@@ -20,6 +20,7 @@ def event_list(request):
             city=request.query_params.get("city"),
             free=request.query_params.get("free"),
             name=request.query_params.get("name"),
+            place_id=request.query_params.get("place"),
         )
         return success_response(EventSerializer(events, many=True).data)
 

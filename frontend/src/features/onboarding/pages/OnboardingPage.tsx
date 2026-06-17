@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { Sparkles, Check } from 'lucide-react'
 import { useSetPreferences } from '@/hooks/usePreferences'
 import Button from '@/components/ui/Button'
@@ -19,6 +20,7 @@ const PREFERENCE_OPTIONS = [
 
 export default function OnboardingPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const setPreferences = useSetPreferences()
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
@@ -37,6 +39,7 @@ export default function OnboardingPage() {
 
     if (prefs.length > 0) {
       await setPreferences.mutateAsync(prefs)
+      queryClient.invalidateQueries({ queryKey: ['recommendations'] })
     }
     navigate('/recomendaciones')
   }

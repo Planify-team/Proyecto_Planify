@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Sparkles, MapPin, Activity, Calendar, CheckCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Sparkles, MapPin, Activity, Calendar, CheckCircle, Navigation } from 'lucide-react'
 import { useRecommendations } from '@/hooks/useRecommendations'
 import { useWeather } from '@/hooks/useWeather'
 import FavoriteButton from '@/components/ui/FavoriteButton'
@@ -11,6 +12,7 @@ import type { Recommendation, ScoreBreakdown } from '@/types'
 const BA_COORDS = { lat: -34.6037, lon: -58.3816 }
 
 export default function RecommendationsPage() {
+  const navigate = useNavigate()
   const [coords, setCoords] = useState<{ lat: number; lon: number }>(BA_COORDS)
   const [usingGeo, setUsingGeo] = useState(false)
 
@@ -43,9 +45,14 @@ export default function RecommendationsPage() {
             Para vos
           </h1>
           <p className="text-gray-500 text-sm">
-            Recomendaciones personalizadas basadas en tus preferencias
-            {usingGeo ? ' y tu ubicación actual' : ' · Buenos Aires'}.
+            Recomendaciones personalizadas basadas en tus preferencias.
           </p>
+          <div className="flex items-center gap-1.5 mt-1">
+            <Navigation className="h-3.5 w-3.5 text-primary-500" />
+            <span className="text-xs text-primary-600 font-medium">
+              {usingGeo ? 'Usando tu ubicación actual' : 'Usando Buenos Aires como referencia'}
+            </span>
+          </div>
         </div>
         <WeatherWidget weather={weather} />
       </div>
@@ -53,8 +60,9 @@ export default function RecommendationsPage() {
       {recommendations.length === 0 ? (
         <EmptyState
           title="Sin recomendaciones todavía"
-          description="Configurá tus preferencias en el perfil para recibir sugerencias personalizadas."
+          description="Configurá tus preferencias para recibir sugerencias personalizadas de actividades, lugares y eventos."
           icon={<Sparkles className="h-12 w-12 text-gray-300" />}
+          action={{ label: 'Configurar mis preferencias', onClick: () => navigate('/perfil') }}
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -79,6 +87,7 @@ function getReasonLabels(breakdown: ScoreBreakdown): string[] {
 }
 
 function RecommendationCard({ rec }: { rec: Recommendation }) {
+  const navigate = useNavigate()
   const score = Math.round(parseFloat(rec.score))
 
   const name =
@@ -104,10 +113,21 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
     rec.item_type === 'activity' ? 'Actividad' :
     rec.item_type === 'event' ? 'Evento' : 'Lugar'
 
+  const detailPath =
+    rec.item_type === 'activity' ? `/activities/${itemId}` :
+    rec.item_type === 'event' ? `/events/${itemId}` :
+    `/places/${itemId}`
+
   const reasonLabels = rec.score_breakdown ? getReasonLabels(rec.score_breakdown) : []
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex flex-col gap-3 hover:shadow-md transition-shadow">
+    <div
+      className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex flex-col gap-3 hover:shadow-md transition-shadow cursor-pointer"
+      onClick={() => itemId && navigate(detailPath)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && itemId && navigate(detailPath)}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
@@ -144,8 +164,11 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
       )}
 
       {itemId && rec.item_type && (
-        <div className="flex justify-end">
-          <FavoriteButton itemId={itemId} itemType={rec.item_type} />
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-primary-600 font-medium">Ver detalle →</span>
+          <div onClick={(e) => e.stopPropagation()}>
+            <FavoriteButton itemId={itemId} itemType={rec.item_type} />
+          </div>
         </div>
       )}
     </div>

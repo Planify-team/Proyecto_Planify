@@ -25,8 +25,8 @@ export default function PlaceDetail() {
   const navigate = useNavigate()
   const { data: place, isLoading, isError } = usePlace(id!)
   const { data: promotions = [] } = usePromotions(id)
-  const { data: events = [] } = useEvents()
-  const placeEvents = events.filter((e) => e.place === id && e.status === 'published')
+  const { data: events = [] } = useEvents(id ? { place: id } : {})
+  const placeEvents = events.filter((e) => e.status === 'published')
 
   if (isLoading) return <Loading />
   if (isError || !place) {

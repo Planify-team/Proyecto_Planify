@@ -44,7 +44,8 @@ export default function ExplorePage() {
   const [geoError, setGeoError] = useState<string | null>(null)
 
   const places = usePlaces({
-    city: tab === 'lugares' ? (placeFilters.city || search || undefined) : undefined,
+    name: tab === 'lugares' ? (search || undefined) : undefined,
+    city: tab === 'lugares' ? (placeFilters.city || undefined) : undefined,
     category: tab === 'lugares' ? placeFilters.category : undefined,
     outdoor_seating: tab === 'lugares' ? placeFilters.outdoor_seating : undefined,
     fee: tab === 'lugares' ? placeFilters.fee : undefined,
@@ -134,7 +135,7 @@ export default function ExplorePage() {
           <SearchBar
             value={search}
             onChange={setSearch}
-            placeholder={tab === 'lugares' ? 'Buscar por ciudad...' : 'Buscar por categoría...'}
+            placeholder={tab === 'lugares' ? 'Buscar por nombre...' : 'Buscar por categoría...'}
             className="flex-1 max-w-md"
           />
           <button
@@ -198,9 +199,9 @@ export default function ExplorePage() {
               onChange={(v) => setPlaceFilters((f) => ({ ...f, fee: v ? false : undefined }))}
             />
             <CheckFilter
-              label="Acceso en silla"
-              checked={placeFilters.wheelchair === 'limited'}
-              onChange={(v) => setPlaceFilters((f) => ({ ...f, wheelchair: v ? 'limited' : undefined }))}
+              label="Acceso en silla de ruedas"
+              checked={placeFilters.wheelchair === 'yes'}
+              onChange={(v) => setPlaceFilters((f) => ({ ...f, wheelchair: v ? 'yes' : undefined }))}
             />
           </div>
           <button

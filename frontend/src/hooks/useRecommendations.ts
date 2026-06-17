@@ -5,6 +5,6 @@ export function useRecommendations(filters: RecommendationFilters = {}) {
   return useQuery({
     queryKey: ['recommendations', filters],
     queryFn: () => recommendationsService.list(filters),
-    staleTime: 1000 * 60 * 10,
+    staleTime: 0,
   })
 }

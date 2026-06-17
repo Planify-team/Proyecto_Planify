@@ -168,13 +168,9 @@ def _day_of_week_modifier(is_outdoor: bool, category: str) -> float:
     return 0
 
 
-def _feedback_score(entity_id: str, entity_type: str) -> float:
-    """V3: weighted score from PlanFeedback. Ratings: 5→+25, 3→+5, 1→-25, others linear."""
-    from apps.planner.models import PlanFeedback
-    feedbacks = PlanFeedback.objects.filter(
-        entity_type=entity_type,
-        entity_id=entity_id,
-    ).values_list("rating", flat=True)
+def _feedback_score_from_cache(entity_id: str, entity_type: str, cache: dict) -> float:
+    """V3: weighted score from pre-fetched PlanFeedback cache. Avoids N+1."""
+    feedbacks = cache.get((entity_type, str(entity_id)), [])
     if not feedbacks:
         return 0
     total = 0.0
@@ -190,6 +186,16 @@ def _feedback_score(entity_id: str, entity_type: str) -> float:
         else:
             total -= 25
     return max(-25, min(25, total / len(feedbacks)))
+
+
+def _build_feedback_cache() -> dict:
+    """Prefetch all PlanFeedback into a dict keyed by (entity_type, entity_id)."""
+    from apps.planner.models import PlanFeedback
+    cache: dict = {}
+    for fb in PlanFeedback.objects.values("entity_type", "entity_id", "rating"):
+        key = (fb["entity_type"], str(fb["entity_id"]))
+        cache.setdefault(key, []).append(fb["rating"])
+    return cache
 
 
 def _build_reason_from_breakdown(breakdown: dict, pref_map: dict, weather_data: dict | None) -> str:
@@ -245,6 +251,7 @@ def generate_recommendations_for_user(
     interactions = list(
         InteractionHistory.objects.filter(user=user).values_list("entity_id", "action")
     )
+    feedback_cache = _build_feedback_cache()
 
     pending = []
 
@@ -271,7 +278,7 @@ def generate_recommendations_for_user(
         people_s     = _people_modifier(people, activity.min_people, activity.max_people)
         time_s       = _time_of_day_modifier(activity.indoor, activity.outdoor, activity.category)
         day_s        = _day_of_week_modifier(activity.outdoor, activity.category)
-        feedback_s   = _feedback_score(str(activity.id), "activity")
+        feedback_s   = _feedback_score_from_cache(str(activity.id), "activity", feedback_cache)
 
         breakdown = {
             "preference": round(pref_s + cat_s, 2),
@@ -322,7 +329,7 @@ def generate_recommendations_for_user(
         age_s      = _age_modifier(user, event.minimum_age)
         time_s     = _time_of_day_modifier(is_indoor=True, is_outdoor=False, category=event.category)
         day_s      = _day_of_week_modifier(is_outdoor=False, category=event.category)
-        feedback_s = _feedback_score(str(event.id), "event")
+        feedback_s = _feedback_score_from_cache(str(event.id), "event", feedback_cache)
 
         breakdown = {
             "preference": round(pref_s + cat_s, 2),
@@ -364,7 +371,9 @@ def generate_recommendations_for_user(
         dist_s     = _distance_modifier(user_lat, user_lon, place.latitude, place.longitude)
         time_s     = _time_of_day_modifier(is_indoor=True, is_outdoor=False, category=place.category)
         day_s      = _day_of_week_modifier(is_outdoor=False, category=place.category)
-        feedback_s = _feedback_score(str(place.id), "place")
+        feedback_s = _feedback_score_from_cache(str(place.id), "place", feedback_cache)
+        place_cost = float(place.price_level or 0) * 500
+        budget_s   = _budget_modifier(budget, place_cost) if place_cost > 0 else 0
 
         breakdown = {
             "preference": round(pref_s + cat_s, 2),
@@ -372,14 +381,14 @@ def generate_recommendations_for_user(
             "interaction": round(inter_s, 2),
             "weather": 0,
             "distance": round(dist_s, 2),
-            "budget": 0,
+            "budget": round(budget_s, 2),
             "time_of_day": round(time_s, 2),
             "day_of_week": round(day_s, 2),
             "feedback_bonus": round(max(0, feedback_s), 2),
             "feedback_penalty": round(min(0, feedback_s), 2),
         }
         score = max(0, min(100,
-            pref_s + cat_s + pop_s + inter_s + dist_s + time_s + day_s + feedback_s
+            pref_s + cat_s + pop_s + inter_s + dist_s + budget_s + time_s + day_s + feedback_s
         ))
         reason = _build_reason_from_breakdown(breakdown, pref_map, None)
         pending.append(Recommendation(

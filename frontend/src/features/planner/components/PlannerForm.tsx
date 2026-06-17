@@ -96,6 +96,11 @@ export function PlannerForm({ onSubmit, isLoading }: Props) {
           min="0"
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
         />
+        {(budget === '' || budget === '0') && (
+          <p className="text-xs text-amber-600 mt-1">
+            Con presupuesto en $0 solo se incluirán actividades gratuitas.
+          </p>
+        )}
       </div>
 
       <div>

@@ -11,7 +11,7 @@ def _rating_subquery(field: str):
     return base.annotate(v=Count("id")).values("v")[:1]
 
 
-def get_published_events(category=None, date_from=None, date_to=None, city=None, free=None, name=None):
+def get_published_events(category=None, date_from=None, date_to=None, city=None, free=None, name=None, place_id=None):
     qs = Event.objects.filter(status=EventStatus.PUBLISHED, start_date__gte=timezone.now())
     if name:
         qs = qs.filter(title__icontains=name)
@@ -25,6 +25,8 @@ def get_published_events(category=None, date_from=None, date_to=None, city=None,
         qs = qs.filter(place__city__icontains=city)
     if free:
         qs = qs.filter(price=0)
+    if place_id:
+        qs = qs.filter(place_id=place_id)
     qs = qs.annotate(
         avg_rating=Subquery(_rating_subquery("avg")),
         review_count=Subquery(_rating_subquery("count")),
