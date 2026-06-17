@@ -29,7 +29,7 @@ export function PlannerForm({ onSubmit, isLoading }: Props) {
   const today = new Date().toISOString().split('T')[0]
 
   const [date, setDate] = useState(today)
-  const [budget, setBudget] = useState('')
+  const [budget, setBudget] = useState('5000')
   const [peopleCount, setPeopleCount] = useState('2')
   const [city, setCity] = useState('Buenos Aires')
 

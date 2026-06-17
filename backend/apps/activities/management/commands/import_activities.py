@@ -157,15 +157,12 @@ class Command(BaseCommand):
             self.stdout.write(f"  [{action}] {name} ({activity_type}) — {city}")
 
             if not dry_run:
-                _, was_created = Activity.objects.update_or_create(
-                    name=name,
-                    city=city,
-                    defaults=defaults,
-                )
-                if was_created:
-                    created += 1
-                else:
+                if existing:
+                    Activity.objects.filter(name=name, city=city).update(**defaults)
                     updated += 1
+                else:
+                    Activity.objects.create(name=name, **defaults)
+                    created += 1
             else:
                 if existing:
                     updated += 1

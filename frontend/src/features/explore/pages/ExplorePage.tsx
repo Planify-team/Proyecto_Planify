@@ -15,6 +15,19 @@ import EmptyState from '@/components/common/EmptyState'
 
 type Tab = 'lugares' | 'actividades' | 'eventos' | 'cerca'
 
+const ACTIVITY_TYPE_CHIPS = [
+  { type: 'gaming',     emoji: '🎮', label: 'Gaming' },
+  { type: 'sports',     emoji: '⚽', label: 'Deportes' },
+  { type: 'cinema',     emoji: '🎬', label: 'Cine' },
+  { type: 'concert',    emoji: '🎵', label: 'Música' },
+  { type: 'museum',     emoji: '🏛️', label: 'Museos' },
+  { type: 'park',       emoji: '🌳', label: 'Parques' },
+  { type: 'restaurant', emoji: '🍽️', label: 'Gastronomía' },
+  { type: 'bar',        emoji: '🍺', label: 'Bares' },
+  { type: 'tourism',    emoji: '✈️', label: 'Turismo' },
+  { type: 'shopping',   emoji: '🛍️', label: 'Shopping' },
+]
+
 interface PlaceFilters {
   city?: string
   category?: string
@@ -26,7 +39,7 @@ interface PlaceFilters {
   wheelchair?: string
   cuisine?: string
 }
-interface ActivityFilters { category?: string; indoor?: boolean; outdoor?: boolean; free?: boolean }
+interface ActivityFilters { category?: string; indoor?: boolean; outdoor?: boolean; free?: boolean; type?: string }
 interface EventFilters { category?: string; date_from?: string; date_to?: string; free?: boolean }
 
 export default function ExplorePage() {
@@ -58,6 +71,7 @@ export default function ExplorePage() {
     indoor: tab === 'actividades' && activityFilters.indoor ? true : undefined,
     outdoor: tab === 'actividades' && activityFilters.outdoor ? true : undefined,
     free: tab === 'actividades' && activityFilters.free ? true : undefined,
+    type: tab === 'actividades' ? activityFilters.type : undefined,
   })
 
   const events = useEvents({
@@ -119,6 +133,7 @@ export default function ExplorePage() {
     + (placeFilters.fee === false ? 1 : 0)
     : tab === 'actividades'
     ? Object.values(activityFilters).filter((v) => v !== undefined && v !== false).length
+      + (activityFilters.type ? 1 : 0)
     : tab === 'eventos'
     ? Object.values(eventFilters).filter(Boolean).length
     : 0
@@ -386,11 +401,32 @@ export default function ExplorePage() {
       )}
 
       {tab === 'actividades' && (
-        <TabContent isLoading={activities.isLoading} isEmpty={!activities.data?.length}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {activities.data?.map((activity) => <ActivityCard key={activity.id} activity={activity} />)}
+        <>
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+            {ACTIVITY_TYPE_CHIPS.map((chip) => (
+              <button
+                key={chip.type}
+                onClick={() => setActivityFilters((f) => ({
+                  ...f,
+                  type: f.type === chip.type ? undefined : chip.type,
+                }))}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border transition-colors flex-shrink-0 ${
+                  activityFilters.type === chip.type
+                    ? 'bg-primary-600 text-white border-primary-600'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-primary-300 hover:text-primary-700'
+                }`}
+              >
+                <span>{chip.emoji}</span>
+                {chip.label}
+              </button>
+            ))}
           </div>
-        </TabContent>
+          <TabContent isLoading={activities.isLoading} isEmpty={!activities.data?.length}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activities.data?.map((activity) => <ActivityCard key={activity.id} activity={activity} />)}
+            </div>
+          </TabContent>
+        </>
       )}
 
       {tab === 'eventos' && (

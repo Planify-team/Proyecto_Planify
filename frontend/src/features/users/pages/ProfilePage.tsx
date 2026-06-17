@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus, X } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { usePreferences, useSetPreferences, useRemovePreference } from '@/hooks/usePreferences'
 import { useUserActivityStats } from '@/hooks/useDashboard'
@@ -23,6 +24,7 @@ const PREFERENCE_OPTIONS = [
 ]
 
 export default function ProfilePage() {
+  const queryClient = useQueryClient()
   const { user } = useAuthStore()
   const { data: preferences = [] } = usePreferences()
   const { data: activityStats } = useUserActivityStats()
@@ -37,8 +39,16 @@ export default function ProfilePage() {
   const handleAdd = (value: string, category: string) => {
     const newPref = { category, value, weight: 3 }
     const all = [...preferences.map((p) => ({ category: p.category, value: p.value, weight: p.weight })), newPref]
-    setPrefs.mutate(all)
+    setPrefs.mutate(all, {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recommendations'] }),
+    })
     setAdding(false)
+  }
+
+  const handleRemove = (id: string) => {
+    removePref.mutate(id, {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recommendations'] }),
+    })
   }
 
   return (
@@ -125,7 +135,7 @@ export default function ProfilePage() {
               >
                 <span className="capitalize">{pref.value}</span>
                 <button
-                  onClick={() => removePref.mutate(pref.id)}
+                  onClick={() => handleRemove(pref.id)}
                   disabled={removePref.isPending}
                   className="hover:text-red-500 transition-colors"
                   aria-label={`Quitar ${pref.value}`}

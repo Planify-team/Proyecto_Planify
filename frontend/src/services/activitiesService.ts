@@ -7,6 +7,8 @@ interface ActivitiesFilters {
   indoor?: boolean
   outdoor?: boolean
   budget?: number
+  free?: boolean
+  name?: string
 }
 
 export const activitiesService = {
