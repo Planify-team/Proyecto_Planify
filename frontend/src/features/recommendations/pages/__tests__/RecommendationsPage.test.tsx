@@ -39,6 +39,7 @@ function makeRecommendation(overrides: Partial<Recommendation> = {}): Recommenda
       outdoor: false,
       address: 'Av. Corrientes 1234',
       city: 'Buenos Aires',
+      is_free: null,
     },
     event_detail: null,
     place_detail: null,

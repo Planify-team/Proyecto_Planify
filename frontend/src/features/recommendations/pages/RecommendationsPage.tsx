@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, MapPin, Activity, Calendar, CheckCircle, Navigation } from 'lucide-react'
+import { Sparkles, MapPin, Activity, Calendar, CheckCircle, Navigation, DollarSign } from 'lucide-react'
 import { useRecommendations } from '@/hooks/useRecommendations'
 import { useWeather } from '@/hooks/useWeather'
 import FavoriteButton from '@/components/ui/FavoriteButton'
@@ -177,6 +177,38 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${badge.className}`}>
           {badge.label}
         </span>
+      </div>
+
+      {/* Price / date meta */}
+      <div className="flex items-center gap-3 text-xs text-gray-500 border-t border-gray-50 pt-2">
+        {rec.item_type === 'activity' && rec.activity_detail && (
+          <span className="flex items-center gap-1">
+            <DollarSign className="h-3.5 w-3.5 flex-shrink-0" />
+            {(rec.activity_detail.is_free || parseFloat(rec.activity_detail.min_budget) === 0)
+              ? 'Gratis'
+              : `Desde $${Math.round(parseFloat(rec.activity_detail.min_budget)).toLocaleString('es-AR')}`}
+          </span>
+        )}
+        {rec.item_type === 'event' && rec.event_detail && (
+          <>
+            <span className="flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
+              {new Date(rec.event_detail.start_date).toLocaleDateString('es-AR', {
+                weekday: 'short', day: 'numeric', month: 'short',
+              })}
+            </span>
+            <span className="flex items-center gap-1">
+              <DollarSign className="h-3.5 w-3.5 flex-shrink-0" />
+              {parseFloat(rec.event_detail.price) === 0 ? 'Gratis' : `$${Math.round(parseFloat(rec.event_detail.price)).toLocaleString('es-AR')}`}
+            </span>
+          </>
+        )}
+        {rec.item_type === 'place' && rec.place_detail && rec.place_detail.price_level > 0 && (
+          <span className="flex items-center gap-1">
+            {'$'.repeat(rec.place_detail.price_level)}
+            <span className="text-gray-300">{'$'.repeat(4 - rec.place_detail.price_level)}</span>
+          </span>
+        )}
       </div>
 
       {reasonLabels.length > 0 && (

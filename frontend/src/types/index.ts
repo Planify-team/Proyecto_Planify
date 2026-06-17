@@ -211,6 +211,7 @@ export interface Recommendation {
     outdoor: boolean
     address: string
     city: string
+    is_free: boolean | null
   } | null
   event_detail: {
     id: string

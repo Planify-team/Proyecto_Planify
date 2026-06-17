@@ -18,6 +18,8 @@ export interface SearchResults {
     min_budget: string
     indoor: boolean
     outdoor: boolean
+    address: string
+    city: string
   }>
   events: Array<{
     id: string

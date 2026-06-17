@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Users, DollarSign, Cloud, Home } from 'lucide-react'
+import { Users, DollarSign, Cloud, Home, MapPin } from 'lucide-react'
 import type { Activity } from '@/types'
 import FavoriteButton from './FavoriteButton'
 import { RatingBadge } from './ReviewSection'
@@ -57,6 +57,16 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
 
         {activity.description && (
           <p className="text-sm text-gray-600 mt-2 line-clamp-2">{activity.description}</p>
+        )}
+
+        {activity.address && (
+          <div className="flex items-start gap-1 mt-1.5">
+            <MapPin className="h-3.5 w-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
+            <span className="text-xs text-gray-500 leading-snug">
+              <span className="block">{activity.address}</span>
+              {activity.city && <span className="block text-gray-400">{activity.city}</span>}
+            </span>
+          </div>
         )}
 
         {activity.avg_rating != null && (

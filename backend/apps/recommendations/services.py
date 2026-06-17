@@ -8,6 +8,23 @@ from .models import Recommendation, InteractionHistory
 
 logger = logging.getLogger(__name__)
 
+# Spanish preference values → activity_type English key
+PREF_TYPE_MAP: dict[str, str] = {
+    "gaming":       "gaming",
+    "cine":         "cinema",
+    "deportes":     "sports",
+    "música":       "concert",
+    "musica":       "concert",
+    "gastronomía":  "restaurant",
+    "gastronomia":  "restaurant",
+    "arte":         "museum",
+    "turismo":      "tourism",
+    "bienestar":    "park",
+    "bar":          "bar",
+    "shopping":     "shopping",
+    "entretenimiento": "gaming",
+}
+
 # ── V1 base weights (sum = 100) ───────────────────────────────────────────────
 WEIGHT_PREFERENCE  = 40
 WEIGHT_CATEGORY    = 25
@@ -41,7 +58,14 @@ def _pref_boost(category: str, activity_type: str = "", pref_map: dict = None) -
     cat = category.lower()
     atype = activity_type.lower() if activity_type else ""
     for key, weight in pref_map.items():
-        if key in cat or cat in key or (atype and (key in atype or atype in key)):
+        k = key.lower()
+        if k in cat or cat in k:
+            return min(weight * (WEIGHT_PREFERENCE / 10), WEIGHT_PREFERENCE)
+        if atype and (k in atype or atype in k):
+            return min(weight * (WEIGHT_PREFERENCE / 10), WEIGHT_PREFERENCE)
+        # Spanish pref value → activity_type mapping (e.g. "arte"→"museum")
+        mapped = PREF_TYPE_MAP.get(k)
+        if mapped and atype and (mapped == atype or mapped in atype):
             return min(weight * (WEIGHT_PREFERENCE / 10), WEIGHT_PREFERENCE)
     return 0
 
@@ -49,7 +73,11 @@ def _pref_boost(category: str, activity_type: str = "", pref_map: dict = None) -
 def _category_score(category: str, pref_map: dict) -> float:
     cat = category.lower()
     for key in pref_map:
-        if key in cat or cat in key:
+        k = key.lower()
+        if k in cat or cat in k:
+            return WEIGHT_CATEGORY
+        mapped = PREF_TYPE_MAP.get(k)
+        if mapped and mapped in cat:
             return WEIGHT_CATEGORY
     return 0
 
@@ -135,35 +163,41 @@ def _age_modifier(user, minimum_age: int) -> float:
     return MOD_AGE_BLOCKED if age < minimum_age else 0
 
 
-def _time_of_day_modifier(is_indoor: bool, is_outdoor: bool, category: str) -> float:
+def _time_of_day_modifier(is_indoor: bool, is_outdoor: bool, category: str, activity_type: str = "") -> float:
     hour = timezone.localtime(timezone.now()).hour
     cat = category.lower()
+    atype = activity_type.lower()
+    MORNING_CATS = ("café", "cafe", "desayuno", "breakfast", "outdoor", "park", "parque")
+    AFTERNOON_CATS = ("restaurant", "food", "gastronomía", "gastronomia", "museo", "museum", "cine", "cinema")
+    EVENING_CATS = ("bar", "music", "gaming", "concierto", "concert", "entertainment", "entretenimiento", "deporte", "sport")
     if 6 <= hour < 12:
-        if any(k in cat for k in ("café", "cafe", "desayuno", "breakfast", "outdoor", "park", "parque")):
-            return MOD_TIME_BONUS
-        if is_outdoor:
+        if any(k in cat for k in MORNING_CATS) or is_outdoor:
             return MOD_TIME_BONUS
     elif 12 <= hour < 19:
-        if any(k in cat for k in ("restaurant", "food", "gastronomía", "museo", "museum", "cine", "cinema")):
+        if any(k in cat for k in AFTERNOON_CATS) or any(k in atype for k in ("cinema", "museum")):
             return MOD_TIME_BONUS
     else:
-        if any(k in cat for k in ("bar", "music", "gaming", "concierto", "concert", "entertainment")):
+        if any(k in cat for k in EVENING_CATS) or any(k in atype for k in ("gaming", "concert", "bar", "sports")):
             return MOD_TIME_BONUS
         if is_indoor:
             return 3
     return 0
 
 
-def _day_of_week_modifier(is_outdoor: bool, category: str) -> float:
+def _day_of_week_modifier(is_outdoor: bool, category: str, activity_type: str = "") -> float:
     """V2: weekends favour outdoor/long activities, weekdays favour nearby/quick ones."""
     weekday = timezone.localtime(timezone.now()).weekday()  # 0=Mon, 6=Sun
     cat = category.lower()
+    atype = activity_type.lower()
     is_weekend = weekday >= 5
+    WEEKEND_CATS = ("parque", "park", "turismo", "museo", "excursión")
+    WEEKEND_TYPES = ("sports", "gaming", "cinema", "concert", "tourism", "museum")
+    WEEKDAY_CATS = ("café", "cafe", "bar", "restaurant", "gastronomía", "gastronomia")
     if is_weekend:
-        if is_outdoor or any(k in cat for k in ("parque", "park", "turismo", "museo", "excursión")):
+        if is_outdoor or any(k in cat for k in WEEKEND_CATS) or atype in WEEKEND_TYPES:
             return 5
     else:
-        if any(k in cat for k in ("café", "cafe", "bar", "restaurant", "gastronomía")):
+        if any(k in cat for k in WEEKDAY_CATS) or atype in ("restaurant", "bar"):
             return 3
     return 0
 
@@ -257,14 +291,13 @@ def generate_recommendations_for_user(
 
     # ── Activities ────────────────────────────────────────────────────────────
     for activity in get_active_activities():
-        place_lat = activity.place.latitude if activity.place_id else None
-        place_lon = activity.place.longitude if activity.place_id else None
-        distance_km = None
-        if user_lat and place_lat:
-            try:
-                distance_km = _haversine_km(user_lat, user_lon, float(place_lat), float(place_lon))
-            except Exception:
-                pass
+        # Prefer the activity's own coordinates; fall back to linked Place
+        act_lat = float(activity.latitude) if activity.latitude else None
+        act_lon = float(activity.longitude) if activity.longitude else None
+        if act_lat is None and activity.place_id:
+            place = activity.place
+            act_lat = float(place.latitude) if place and place.latitude else None
+            act_lon = float(place.longitude) if place and place.longitude else None
 
         min_cost = float(activity.min_budget) if activity.min_budget else None
 
@@ -273,11 +306,11 @@ def generate_recommendations_for_user(
         pop_s        = _popularity_score(activity.score_base)
         inter_s      = _interaction_score_v2(activity.id, interactions)
         weather_s    = _weather_modifier(activity.outdoor, activity.indoor, is_outdoor_friendly)
-        dist_s       = _distance_modifier(user_lat, user_lon, place_lat, place_lon)
+        dist_s       = _distance_modifier(user_lat, user_lon, act_lat, act_lon)
         budget_s     = _budget_modifier(budget, min_cost)
         people_s     = _people_modifier(people, activity.min_people, activity.max_people)
-        time_s       = _time_of_day_modifier(activity.indoor, activity.outdoor, activity.category)
-        day_s        = _day_of_week_modifier(activity.outdoor, activity.category)
+        time_s       = _time_of_day_modifier(activity.indoor, activity.outdoor, activity.category, activity.activity_type)
+        day_s        = _day_of_week_modifier(activity.outdoor, activity.category, activity.activity_type)
         feedback_s   = _feedback_score_from_cache(str(activity.id), "activity", feedback_cache)
 
         breakdown = {
@@ -327,8 +360,8 @@ def generate_recommendations_for_user(
         dist_s     = _distance_modifier(user_lat, user_lon, place_lat, place_lon)
         budget_s   = _budget_modifier(budget, event_cost)
         age_s      = _age_modifier(user, event.minimum_age)
-        time_s     = _time_of_day_modifier(is_indoor=True, is_outdoor=False, category=event.category)
-        day_s      = _day_of_week_modifier(is_outdoor=False, category=event.category)
+        time_s     = _time_of_day_modifier(is_indoor=True, is_outdoor=False, category=event.category, activity_type="")
+        day_s      = _day_of_week_modifier(is_outdoor=False, category=event.category, activity_type="")
         feedback_s = _feedback_score_from_cache(str(event.id), "event", feedback_cache)
 
         breakdown = {
@@ -369,8 +402,8 @@ def generate_recommendations_for_user(
         pop_s      = _popularity_score(50)
         inter_s    = _interaction_score_v2(place.id, interactions)
         dist_s     = _distance_modifier(user_lat, user_lon, place.latitude, place.longitude)
-        time_s     = _time_of_day_modifier(is_indoor=True, is_outdoor=False, category=place.category)
-        day_s      = _day_of_week_modifier(is_outdoor=False, category=place.category)
+        time_s     = _time_of_day_modifier(is_indoor=True, is_outdoor=False, category=place.category, activity_type="")
+        day_s      = _day_of_week_modifier(is_outdoor=False, category=place.category, activity_type="")
         feedback_s = _feedback_score_from_cache(str(place.id), "place", feedback_cache)
         place_cost = float(place.price_level or 0) * 500
         budget_s   = _budget_modifier(budget, place_cost) if place_cost > 0 else 0

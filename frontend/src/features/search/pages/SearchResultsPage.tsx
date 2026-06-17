@@ -1,6 +1,6 @@
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Search, MapPin, Calendar, Zap } from 'lucide-react'
+import { Search, MapPin, Calendar, Zap, DollarSign } from 'lucide-react'
 import { useSearch } from '@/hooks/useSearch'
 import Loading from '@/components/common/Loading'
 
@@ -118,14 +118,28 @@ export default function SearchResultsPage() {
                     <div className="h-14 w-14 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
                       <Zap className="h-6 w-6 text-primary-300" />
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="font-medium text-gray-900 truncate">{activity.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {activity.indoor && activity.outdoor ? 'Interior / Exterior' : activity.indoor ? 'Interior' : 'Exterior'}
-                      </p>
-                      <span className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium">
-                        {activity.category}
-                      </span>
+                      {activity.address ? (
+                        <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          {activity.address}{activity.city ? `, ${activity.city}` : ''}
+                        </p>
+                      ) : activity.city ? (
+                        <p className="text-xs text-gray-500 flex items-center gap-1">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          {activity.city}
+                        </p>
+                      ) : null}
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium">
+                          {activity.category}
+                        </span>
+                        <span className="text-xs text-gray-500 flex items-center gap-0.5">
+                          <DollarSign className="h-3 w-3" />
+                          {parseFloat(String(activity.min_budget)) === 0 ? 'Gratis' : `Desde $${Math.round(parseFloat(String(activity.min_budget))).toLocaleString('es-AR')}`}
+                        </span>
+                      </div>
                     </div>
                   </button>
                 ))}
