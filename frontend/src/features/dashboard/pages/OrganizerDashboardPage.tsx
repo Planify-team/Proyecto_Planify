@@ -2,6 +2,7 @@ import { Calendar, Star, Megaphone } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useOrganizerStats, useOwnedEvents } from '@/hooks/useDashboard'
 import Loading from '@/components/common/Loading'
+import EmptyState from '@/components/common/EmptyState'
 
 function StatCard({ label, value, icon }: { label: string; value: string | number; icon: React.ReactNode }) {
   return (
@@ -54,7 +55,11 @@ export default function OrganizerDashboardPage() {
       <section>
         <h2 className="text-lg font-semibold text-gray-800 mb-3">Mis eventos</h2>
         {!events || events.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">No tenés eventos registrados.</p>
+          <EmptyState
+            title="Sin eventos registrados"
+            description="Creá tu primer evento para verlo acá."
+            icon={<Calendar className="h-8 w-8 text-gray-400" />}
+          />
         ) : (
           <div className="space-y-2">
             {events.map(event => (

@@ -92,8 +92,8 @@ export default function PlannerPage() {
               </div>
 
               {currentPlan.items.length === 0 ? (
-                <p className="text-sm text-gray-500">
-                  No se encontraron opciones para esa ciudad y fecha. Probá con otra ciudad.
+                <p className="text-sm text-gray-500 text-center py-4">
+                  No encontramos actividades para esa ciudad y fecha. Probá con otra ciudad.
                 </p>
               ) : (
                 <ItineraryView plan={currentPlan} readonly />

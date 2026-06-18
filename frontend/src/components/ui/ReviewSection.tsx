@@ -22,7 +22,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
           onClick={() => onChange(n)}
           onMouseEnter={() => setHovered(n)}
           onMouseLeave={() => setHovered(0)}
-          className="focus:outline-none"
+          className="focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 rounded"
         >
           <Star
             className={`h-6 w-6 transition-colors ${

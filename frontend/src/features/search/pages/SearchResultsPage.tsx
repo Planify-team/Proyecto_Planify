@@ -52,7 +52,7 @@ export default function SearchResultsPage() {
         </div>
         <button
           type="submit"
-          className="px-5 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 transition-colors"
+          className="px-5 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 shadow-neon-sm transition-all"
         >
           Buscar
         </button>

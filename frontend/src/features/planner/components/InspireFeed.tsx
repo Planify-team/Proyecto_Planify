@@ -42,9 +42,9 @@ export function InspireFeed() {
       </div>
 
       {plans.length === 0 ? (
-        <div className="text-sm text-gray-400 italic text-center py-4">
+        <p className="text-sm text-gray-500 text-center py-4">
           Todavía no hay planes populares. ¡Sé el primero en compartir el tuyo!
-        </div>
+        </p>
       ) : (
         <div className="grid sm:grid-cols-2 gap-3">
           {plans.map((plan) => (

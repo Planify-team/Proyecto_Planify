@@ -2,6 +2,7 @@ import { Building2, Tag, Star, MapPin } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useBusinessStats, useOwnedPlaces, useOwnedPromotions } from '@/hooks/useDashboard'
 import Loading from '@/components/common/Loading'
+import EmptyState from '@/components/common/EmptyState'
 
 function StatCard({ label, value, icon }: { label: string; value: string | number; icon: React.ReactNode }) {
   return (
@@ -41,7 +42,11 @@ export default function BusinessDashboardPage() {
       <section className="mb-8">
         <h2 className="text-lg font-semibold text-gray-800 mb-3">Mis lugares</h2>
         {!places || places.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">No tenés lugares registrados.</p>
+          <EmptyState
+            title="Sin lugares registrados"
+            description="Registrá tu primer lugar para verlo acá."
+            icon={<Building2 className="h-8 w-8 text-gray-400" />}
+          />
         ) : (
           <div className="space-y-2">
             {places.map(place => (
@@ -65,7 +70,11 @@ export default function BusinessDashboardPage() {
       <section>
         <h2 className="text-lg font-semibold text-gray-800 mb-3">Mis promociones</h2>
         {!promotions || promotions.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">No tenés promociones registradas.</p>
+          <EmptyState
+            title="Sin promociones"
+            description="Creá una promoción para atraer más clientes."
+            icon={<Tag className="h-8 w-8 text-gray-400" />}
+          />
         ) : (
           <div className="space-y-2">
             {promotions.map(promo => (
