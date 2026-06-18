@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import Button from './Button'
 
@@ -17,9 +17,12 @@ const sizeClasses = {
 }
 
 export default function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+  const panelRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
+      panelRef.current?.focus()
       const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
       document.addEventListener('keydown', handleKey)
       return () => { document.removeEventListener('keydown', handleKey); document.body.style.overflow = '' }
@@ -36,13 +39,17 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       role="dialog"
       aria-modal="true"
-      aria-label={title}
+      aria-labelledby={title ? 'modal-title' : undefined}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className={`bg-white rounded-xl shadow-glass w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto border border-white/10`}>
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        className={`bg-white rounded-xl shadow-glass w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto border border-white/10 focus:outline-none`}
+      >
         {title && (
           <div className="flex items-center justify-between p-6 border-b border-gray-200/30">
-            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+            <h2 id="modal-title" className="text-lg font-semibold text-gray-900">{title}</h2>
             <Button variant="ghost" size="sm" onClick={onClose} aria-label="Cerrar">
               <X className="h-4 w-4" />
             </Button>
