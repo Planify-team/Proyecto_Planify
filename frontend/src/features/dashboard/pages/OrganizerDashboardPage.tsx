@@ -39,7 +39,10 @@ export default function OrganizerDashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Panel de Organizador</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <Megaphone className="h-7 w-7 text-primary-600" />
+        <h1 className="text-2xl font-bold text-gray-900">Panel de Organizador</h1>
+      </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
         <StatCard label="Eventos totales" value={stats?.total_events ?? 0} icon={<Calendar className="h-5 w-5" />} />

@@ -30,7 +30,10 @@ export default function FavoritesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Mis favoritos</h1>
+        <div className="flex items-center gap-2 mb-1">
+          <Heart className="h-6 w-6 text-primary-600" />
+          <h1 className="text-2xl font-bold text-gray-900">Mis favoritos</h1>
+        </div>
         <p className="text-gray-500 text-sm">Todo lo que guardaste para volver a ver.</p>
       </div>
 

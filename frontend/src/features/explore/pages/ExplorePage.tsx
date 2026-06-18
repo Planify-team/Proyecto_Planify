@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { MapPin, Activity, Calendar, TrendingUp, Navigation, Filter, X, Globe } from 'lucide-react'
+import { MapPin, Activity, Calendar, TrendingUp, Navigation, Filter, X, Globe, Compass } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { usePlaces } from '@/hooks/usePlaces'
 import { useActivities } from '@/hooks/useActivities'
@@ -143,7 +143,10 @@ export default function ExplorePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Explorar</h1>
+        <div className="flex items-center gap-2 mb-1">
+          <Compass className="h-6 w-6 text-primary-600" />
+          <h1 className="text-2xl font-bold text-gray-900">Explorar</h1>
+        </div>
         <p className="text-gray-500 text-sm">Descubrí lugares, actividades y eventos cerca tuyo.</p>
       </div>
 
