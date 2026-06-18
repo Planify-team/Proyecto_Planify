@@ -106,7 +106,7 @@ export default function PlaceDetail() {
 
       {/* Enriched place info */}
       {(place.opening_hours || place.cuisine || place.fee !== null || place.outdoor_seating !== null || place.internet_access !== null || place.wheelchair) && (
-        <div className="bg-gray-100 rounded-xl p-4 border border-gray-200/50">
+        <div className="bg-gray-100 rounded-xl p-4 border border-gray-200/30">
           <h2 className="text-sm font-semibold text-gray-600 mb-3">Información del lugar</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm">
             <div className="flex items-center gap-2">

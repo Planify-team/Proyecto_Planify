@@ -537,7 +537,7 @@ function TabContent({
 
 function FilterPanel({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="bg-white border border-gray-200/50 rounded-xl p-4 flex flex-col gap-4">
+    <div className="bg-white border border-gray-200/30 rounded-xl p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-gray-600">Filtros avanzados</span>
         <button onClick={onClose} aria-label="Cerrar filtros" className="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 rounded p-0.5">
