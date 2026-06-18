@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { DollarSign, Users, MapPin, ArrowLeft, Tag } from 'lucide-react'
+import { DollarSign, Users, MapPin, ArrowLeft, Tag, Zap } from 'lucide-react'
 import { useActivity } from '@/hooks/useActivities'
 import Loading from '@/components/common/Loading'
 import Button from '@/components/ui/Button'
@@ -20,9 +20,13 @@ export default function ActivityDetail() {
   if (isLoading) return <Loading />
   if (isError || !activity) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center">
-        <p className="text-gray-500">Actividad no encontrada.</p>
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mt-4">Volver</Button>
+      <div className="flex flex-col items-center justify-center min-h-[40vh] px-4 text-center gap-4">
+        <div className="p-5 bg-primary-500/10 rounded-2xl border border-primary-400/20">
+          <Zap className="h-12 w-12 text-primary-400" />
+        </div>
+        <p className="text-lg font-semibold text-gray-800">Actividad no encontrada</p>
+        <p className="text-sm text-gray-500 max-w-xs">Puede que haya sido eliminada o que no tengas acceso.</p>
+        <Button variant="ghost" onClick={() => navigate(-1)}>Volver</Button>
       </div>
     )
   }

@@ -34,9 +34,13 @@ export default function EventDetail() {
   if (isLoading) return <Loading />
   if (isError || !event) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center">
-        <p className="text-gray-500">Evento no encontrado.</p>
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mt-4">Volver</Button>
+      <div className="flex flex-col items-center justify-center min-h-[40vh] px-4 text-center gap-4">
+        <div className="p-5 bg-primary-500/10 rounded-2xl border border-primary-400/20">
+          <Calendar className="h-12 w-12 text-primary-400" />
+        </div>
+        <p className="text-lg font-semibold text-gray-800">Evento no encontrado</p>
+        <p className="text-sm text-gray-500 max-w-xs">Puede que haya sido eliminado o que no tengas acceso.</p>
+        <Button variant="ghost" onClick={() => navigate(-1)}>Volver</Button>
       </div>
     )
   }
