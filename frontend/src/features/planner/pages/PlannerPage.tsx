@@ -52,7 +52,7 @@ export default function PlannerPage() {
 
       {/* Plan form + result */}
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-glass-sm">
           <h2 className="text-base font-semibold text-gray-800 mb-4">Configurar plan</h2>
           <PlannerForm onSubmit={handleSubmit} isLoading={planner.isPending} />
         </div>
@@ -65,13 +65,13 @@ export default function PlannerPage() {
           )}
 
           {planner.isError && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
               Error al generar el plan. Intentá de nuevo.
             </div>
           )}
 
           {currentPlan && !planner.isPending && (
-            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-glass-sm">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-semibold text-gray-800">{currentPlan.title}</h2>
                 <button
@@ -94,7 +94,7 @@ export default function PlannerPage() {
 
           {!currentPlan && !planner.isPending && !planner.isError && (
             <div className="flex flex-col items-center justify-center h-40 text-gray-400 text-sm text-center">
-              <CalendarDays className="h-10 w-10 mb-2 text-gray-300" />
+              <CalendarDays className="h-10 w-10 mb-2 text-primary-400/50" />
               Completá el formulario para generar tu plan
             </div>
           )}
@@ -102,12 +102,12 @@ export default function PlannerPage() {
       </div>
 
       {/* Surprise button */}
-      <div className="flex flex-col items-center gap-2 p-5 bg-gradient-to-r from-primary-50 to-purple-50 rounded-xl border border-primary-100">
+      <div className="flex flex-col items-center gap-2 p-5 bg-gradient-to-r from-primary-100/40 to-violet-900/30 rounded-xl border border-primary-400/20 shadow-neon-sm">
         <p className="text-sm text-gray-600 font-medium">¿No sabés qué hacer? Dejalo en nuestras manos</p>
         <button
           onClick={handleSurprise}
           disabled={surprise.isPending}
-          className="flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl shadow-sm transition-colors disabled:opacity-60"
+          className="flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl shadow-neon transition-all disabled:opacity-60"
         >
           <Sparkles className="h-5 w-5" />
           {surprise.isPending ? 'Armando algo especial...' : '¡Sorprendeme!'}
@@ -131,7 +131,7 @@ export default function PlannerPage() {
 
       {/* Inspire Feed — only when no plan has been generated yet */}
       {!currentPlan && (
-        <div className="border-t border-gray-100 pt-6">
+        <div className="border-t border-gray-200/30 pt-6">
           <InspireFeed />
         </div>
       )}
