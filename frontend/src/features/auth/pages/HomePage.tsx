@@ -155,9 +155,9 @@ export default function HomePage() {
             <button
               key={s.type}
               onClick={() => navigate('/explorar', { state: { activityType: s.type } })}
-              className="flex flex-col items-center gap-1.5 p-3 bg-white border border-gray-200 rounded-xl shadow-glass-sm hover:border-primary-500/40 hover:shadow-neon-sm transition-all"
+              className="flex flex-col items-center gap-1.5 p-3 bg-white border border-gray-200 rounded-xl shadow-glass-sm hover:border-primary-500/40 hover:shadow-neon-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
             >
-              <span className="text-xl">{s.emoji}</span>
+              <span className="text-xl" aria-hidden="true">{s.emoji}</span>
               <span className="text-xs font-medium text-gray-600">{s.label}</span>
             </button>
           ))}
@@ -183,7 +183,7 @@ export default function HomePage() {
             <button
               key={a.to}
               onClick={() => navigate(a.to)}
-              className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-glass-sm hover:shadow-neon-sm hover:border-primary-500/40 transition-all text-left"
+              className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-glass-sm hover:shadow-neon-sm hover:border-primary-500/40 transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
             >
               <div className={`${a.bg} rounded-lg w-8 h-8 flex items-center justify-center flex-shrink-0`}>
                 {a.icon}

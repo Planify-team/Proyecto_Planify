@@ -175,7 +175,9 @@ export default function PlaceDetail() {
             <Phone className="h-5 w-5 text-primary-600 flex-shrink-0" />
             <div>
               <p className="text-xs text-gray-500">Teléfono</p>
-              <p className="text-sm font-medium text-gray-900">{place.phone}</p>
+              <a href={`tel:${place.phone}`} className="text-sm font-medium text-primary-600 hover:underline">
+                {place.phone}
+              </a>
             </div>
           </div>
         )}

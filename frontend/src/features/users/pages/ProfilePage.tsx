@@ -100,7 +100,7 @@ export default function ProfilePage() {
             <h3 className="font-semibold text-gray-800">Mis preferencias</h3>
             <p className="text-xs text-gray-500 mt-0.5">Usamos esto para personalizar tus recomendaciones.</p>
           </div>
-          <Button size="sm" variant="secondary" onClick={() => setAdding(!adding)} leftIcon={<Plus className="h-3.5 w-3.5" />}>
+          <Button size="sm" variant="secondary" onClick={() => setAdding(!adding)} leftIcon={<Plus className="h-3.5 w-3.5" />} aria-expanded={adding}>
             Agregar
           </Button>
         </div>

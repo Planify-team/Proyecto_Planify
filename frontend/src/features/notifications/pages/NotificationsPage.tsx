@@ -32,7 +32,7 @@ function NotificationItem({ notification }: { notification: Notification }) {
           : 'bg-primary-500/10 border-primary-400/20'
       }`}
     >
-      <div className="mt-0.5 flex-shrink-0">
+      <div className="mt-0.5 flex-shrink-0" aria-hidden="true">
         {notification.read ? (
           <CheckCheck className="h-5 w-5 text-gray-400" />
         ) : (
@@ -58,7 +58,8 @@ function NotificationItem({ notification }: { notification: Notification }) {
             <button
               onClick={() => markRead.mutate(notification.id)}
               disabled={markRead.isPending}
-              className="text-xs text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50"
+              className="text-xs text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 rounded"
+              aria-label={`Marcar como leída: ${notification.title}`}
             >
               Marcar como leída
             </button>
@@ -107,7 +108,7 @@ export default function NotificationsPage() {
           <button
             onClick={() => markAll.mutate(unread.map((n) => n.id))}
             disabled={markAll.isPending}
-            className="ml-auto text-xs text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50"
+            className="ml-auto text-xs text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 rounded"
           >
             Marcar todas como leídas
           </button>

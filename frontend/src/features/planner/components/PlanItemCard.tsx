@@ -77,10 +77,10 @@ export function PlanItemCard({ item, onRemove, onFeedback, onSaveNote, onReorder
         {/* Reorder buttons */}
         {onReorder && (
           <div className="flex flex-col gap-0.5 pt-1 opacity-30 group-hover:opacity-100 transition-opacity flex-shrink-0">
-            <button onClick={() => onReorder(item.id, 'up')} className="p-0.5 text-gray-400 hover:text-gray-700" aria-label="Mover arriba">
+            <button onClick={() => onReorder(item.id, 'up')} className="p-0.5 text-gray-400 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/60 rounded" aria-label="Mover arriba">
               <ChevronUp className="h-3.5 w-3.5" />
             </button>
-            <button onClick={() => onReorder(item.id, 'down')} className="p-0.5 text-gray-400 hover:text-gray-700" aria-label="Mover abajo">
+            <button onClick={() => onReorder(item.id, 'down')} className="p-0.5 text-gray-400 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/60 rounded" aria-label="Mover abajo">
               <ChevronDown className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -106,7 +106,7 @@ export function PlanItemCard({ item, onRemove, onFeedback, onSaveNote, onReorder
             detailPath ? (
               <button
                 onClick={() => navigate(detailPath)}
-                className="font-semibold text-gray-900 text-sm leading-snug hover:text-primary-600 flex items-center gap-1 group/link"
+                className="font-semibold text-gray-900 text-sm leading-snug hover:text-primary-600 flex items-center gap-1 group/link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 rounded"
               >
                 {item.entity_name}
                 <ExternalLink className="h-3 w-3 opacity-0 group-hover/link:opacity-60 transition-opacity flex-shrink-0" />
@@ -126,9 +126,10 @@ export function PlanItemCard({ item, onRemove, onFeedback, onSaveNote, onReorder
               ) : null}
               <button
                 onClick={() => setShowDescription((v) => !v)}
-                className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-0.5 mt-0.5"
+                aria-expanded={showDescription}
+                className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-0.5 mt-0.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/40 rounded"
               >
-                <Info className="h-3 w-3" />
+                <Info className="h-3 w-3" aria-hidden="true" />
                 {showDescription ? 'Ocultar' : 'Ver más'}
               </button>
             </div>
@@ -156,8 +157,12 @@ export function PlanItemCard({ item, onRemove, onFeedback, onSaveNote, onReorder
           ) : (
             <div
               onClick={() => !readonly && onSaveNote && setEditingNote(true)}
+              onKeyDown={(e) => !readonly && onSaveNote && (e.key === 'Enter' || e.key === ' ') && setEditingNote(true)}
+              role={!readonly && onSaveNote ? 'button' : undefined}
+              tabIndex={!readonly && onSaveNote ? 0 : undefined}
+              aria-label={!readonly && onSaveNote ? (item.note ? `Editar nota: ${item.note}` : 'Agregar nota') : undefined}
               className={`mt-1.5 text-sm min-h-[1rem] rounded px-1 -mx-1 ${
-                !readonly && onSaveNote ? 'cursor-text hover:bg-white/5 transition-colors' : ''
+                !readonly && onSaveNote ? 'cursor-text hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/40' : ''
               } ${item.note ? 'text-gray-600' : 'text-gray-400 italic'}`}
             >
               {item.note || (!readonly && onSaveNote ? 'Agregar nota...' : '')}
@@ -168,12 +173,12 @@ export function PlanItemCard({ item, onRemove, onFeedback, onSaveNote, onReorder
         {/* Actions */}
         <div className="flex items-center gap-1 flex-shrink-0">
           {onFeedback && (
-            <button onClick={() => onFeedback(item)} className="p-1 text-gray-300 hover:text-yellow-500 transition-colors" aria-label="Calificar" title="Dar feedback">
+            <button onClick={() => onFeedback(item)} className="p-1 text-gray-300 hover:text-yellow-500 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-yellow-400/60 rounded" aria-label={`Calificar: ${item.entity_name ?? 'ítem'}`} title="Dar feedback">
               <Star className="h-4 w-4" />
             </button>
           )}
           {!readonly && onRemove && (
-            <button onClick={() => onRemove(item.id)} className="p-1 text-gray-300 hover:text-red-500 transition-colors" aria-label="Quitar ítem">
+            <button onClick={() => onRemove(item.id)} className="p-1 text-gray-300 hover:text-red-500 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/40 rounded" aria-label={`Quitar: ${item.entity_name ?? 'ítem'}`}>
               <X className="h-4 w-4" />
             </button>
           )}

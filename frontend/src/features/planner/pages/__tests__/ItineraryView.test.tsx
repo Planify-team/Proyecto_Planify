@@ -77,20 +77,20 @@ describe('ItineraryView', () => {
   it('shows remove button when onRemoveItem is provided and not readonly', () => {
     const onRemove = vi.fn()
     renderWithProviders(<ItineraryView plan={makePlan()} onRemoveItem={onRemove} />)
-    const buttons = screen.getAllByLabelText('Quitar ítem')
+    const buttons = screen.getAllByRole('button', { name: /^Quitar:/i })
     expect(buttons).toHaveLength(3)
   })
 
   it('calls onRemoveItem when remove button is clicked', () => {
     const onRemove = vi.fn()
     renderWithProviders(<ItineraryView plan={makePlan()} onRemoveItem={onRemove} />)
-    fireEvent.click(screen.getAllByLabelText('Quitar ítem')[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar: Visita al MALBA' }))
     expect(onRemove).toHaveBeenCalledWith('item-1')
   })
 
   it('does not show remove buttons in readonly mode', () => {
     renderWithProviders(<ItineraryView plan={makePlan()} readonly />)
-    expect(screen.queryByLabelText('Quitar ítem')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Quitar:/i })).not.toBeInTheDocument()
   })
 
   it('shows empty slot message when a slot has no items', () => {

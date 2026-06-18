@@ -18,8 +18,14 @@ describe('RatingStars', () => {
   it('does not call onChange when readOnly', () => {
     const onChange = vi.fn()
     render(<RatingStars value={3} onChange={onChange} readOnly />)
-    fireEvent.click(screen.getByLabelText('1 estrella'))
+    fireEvent.click(screen.getByRole('img'))
     expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('renders accessible img with label when readOnly', () => {
+    render(<RatingStars value={3} readOnly />)
+    expect(screen.getByRole('img', { name: '3 de 5 estrellas' })).toBeInTheDocument()
+    expect(screen.queryAllByRole('button')).toHaveLength(0)
   })
 
   it('shows filled stars up to value', () => {
