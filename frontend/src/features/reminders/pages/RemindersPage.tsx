@@ -29,8 +29,12 @@ function ReminderItem({ reminder }: { reminder: Reminder }) {
 
   return (
     <div
-      className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 shadow-glass-sm hover:shadow-neon-sm hover:border-primary-500/30 transition-all cursor-pointer"
+      className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 shadow-glass-sm hover:shadow-neon-sm hover:border-primary-500/30 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
       onClick={() => navigate(`/events/${reminder.event}`)}
+      role="button"
+      tabIndex={0}
+      aria-label={reminder.event_title}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/events/${reminder.event}`)}
     >
       <div className="w-10 h-10 bg-primary-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
         <Bell className="h-5 w-5 text-primary-600" />

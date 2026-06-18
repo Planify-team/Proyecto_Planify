@@ -69,8 +69,12 @@ export default function MyPlansPage() {
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl shadow-glass-sm hover:border-primary-500/30 hover:shadow-neon-sm transition-all cursor-pointer"
+              className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl shadow-glass-sm hover:border-primary-500/30 hover:shadow-neon-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
               onClick={() => navigate(`/planes/${plan.id}`)}
+              role="button"
+              tabIndex={0}
+              aria-label={plan.title}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/planes/${plan.id}`)}
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">

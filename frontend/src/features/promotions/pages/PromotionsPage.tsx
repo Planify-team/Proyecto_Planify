@@ -12,8 +12,12 @@ function PromotionCard({ promo }: { promo: Promotion }) {
   const navigate = useNavigate()
   return (
     <div
-      className="bg-white rounded-xl border border-gray-200 shadow-glass-sm overflow-hidden hover:shadow-neon-sm hover:border-primary-500/30 transition-all cursor-pointer"
+      className="bg-white rounded-xl border border-gray-200 shadow-glass-sm overflow-hidden hover:shadow-neon-sm hover:border-primary-500/30 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
       onClick={() => navigate(`/places/${promo.place}`)}
+      role="button"
+      tabIndex={0}
+      aria-label={promo.title}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/places/${promo.place}`)}
     >
       <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-3 flex items-center justify-between">
         <span className="text-white font-bold text-xl flex items-center gap-1">
