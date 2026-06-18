@@ -402,6 +402,7 @@ export default function ExplorePage() {
                   ...f,
                   type: f.type === chip.type ? undefined : chip.type,
                 }))}
+                aria-pressed={activityFilters.type === chip.type}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border transition-all flex-shrink-0 ${
                   activityFilters.type === chip.type
                     ? 'bg-primary-600 text-white border-primary-500 shadow-neon-sm'
