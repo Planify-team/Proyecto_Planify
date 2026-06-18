@@ -26,7 +26,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
         >
           <Star
             className={`h-6 w-6 transition-colors ${
-              n <= (hovered || value) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'
+              n <= (hovered || value) ? 'fill-amber-400 text-amber-400' : 'text-gray-400/40'
             }`}
           />
         </button>
@@ -42,7 +42,7 @@ function StarDisplay({ value, size = 'sm' }: { value: number; size?: 'sm' | 'md'
       {[1, 2, 3, 4, 5].map((n) => (
         <Star
           key={n}
-          className={`${cls} ${n <= value ? 'fill-amber-400 text-amber-400' : 'text-gray-200'}`}
+          className={`${cls} ${n <= value ? 'fill-amber-400 text-amber-400' : 'text-gray-400/30'}`}
         />
       ))}
     </div>
@@ -107,7 +107,7 @@ export default function ReviewSection({ entityType, entityId }: Props) {
       )}
 
       {user && showForm && (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 bg-gray-50 rounded-xl p-4 border border-gray-200">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3 bg-gray-100 rounded-xl p-4 border border-gray-200">
           <p className="text-sm font-medium text-gray-700">Tu calificación</p>
           <StarPicker value={stars} onChange={setStars} />
           <textarea
@@ -116,7 +116,7 @@ export default function ReviewSection({ entityType, entityId }: Props) {
             placeholder="Contá tu experiencia (opcional)..."
             rows={3}
             maxLength={1000}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none"
+            className="w-full rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-800 placeholder-gray-500 focus:border-primary-500/50 focus:outline-none focus:ring-2 focus:ring-primary-500/30 resize-none transition-all"
           />
           <div className="flex gap-2">
             <Button type="submit" disabled={stars === 0 || createMutation.isPending} className="text-sm">
@@ -130,7 +130,7 @@ export default function ReviewSection({ entityType, entityId }: Props) {
       )}
 
       {user && my_review && (
-        <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
+        <div className="bg-primary-100/30 rounded-xl p-4 border border-primary-400/20">
           <div className="flex items-start justify-between gap-2">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
