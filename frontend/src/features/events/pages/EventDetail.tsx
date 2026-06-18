@@ -117,11 +117,14 @@ export default function EventDetail() {
           </div>
         )}
         {event.place_name && (
-          <div className="flex items-center gap-3 bg-gray-100 rounded-xl p-3 col-span-full sm:col-span-1">
+          <div
+            className={`flex items-center gap-3 bg-gray-100 rounded-xl p-3 col-span-full sm:col-span-1 ${event.place ? 'cursor-pointer hover:bg-gray-100/80 hover:border hover:border-primary-500/20 transition-all' : ''}`}
+            onClick={() => event.place && navigate(`/places/${event.place}`)}
+          >
             <MapPin className="h-5 w-5 text-primary-600 flex-shrink-0" />
             <div>
               <p className="text-xs text-gray-500">Lugar</p>
-              <p className="text-sm font-medium text-gray-900">{event.place_name}</p>
+              <p className={`text-sm font-medium ${event.place ? 'text-primary-600 hover:underline' : 'text-gray-900'}`}>{event.place_name}</p>
             </div>
           </div>
         )}
