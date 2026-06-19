@@ -9,6 +9,15 @@ export function useEvents(filters = {}) {
   })
 }
 
+export function useEventsPaginated(filters: Record<string, unknown> & { page: number }) {
+  return useQuery({
+    queryKey: ['events-paginated', filters],
+    queryFn: () => eventsService.listPaginated(filters as any),
+    staleTime: 1000 * 60 * 5,
+    placeholderData: (prev) => prev,
+  })
+}
+
 export function useEvent(id: string) {
   return useQuery({
     queryKey: ['events', id],

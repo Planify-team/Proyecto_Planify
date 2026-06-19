@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework import status
 
 from apps.core.responses import success_response, created_response, no_content_response, error_response
+from apps.core.pagination import StandardResultsPagination
 from apps.core.permissions import IsAdminOrModerator
 from .serializers import ActivitySerializer, ActivityCreateSerializer
 from .selectors import get_active_activities, get_activity_by_id
@@ -22,6 +23,12 @@ def activity_list(request):
             free=request.query_params.get("free"),
             name=request.query_params.get("name"),
         )
+        if request.query_params.get("page"):
+            paginator = StandardResultsPagination()
+            paginator.page_size = 30
+            result_page = paginator.paginate_queryset(activities, request)
+            return paginator.get_paginated_response(ActivitySerializer(result_page, many=True).data)
+
         return success_response(ActivitySerializer(activities, many=True).data)
 
     if not IsAdminOrModerator().has_permission(request, None):

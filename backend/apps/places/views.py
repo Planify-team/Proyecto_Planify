@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from apps.core.responses import success_response, created_response, no_content_response, error_response
+from apps.core.pagination import StandardResultsPagination
 from .serializers import PlaceSerializer, PlaceCreateSerializer
 from .selectors import get_active_places, get_place_by_id
 from .services import create_place, update_place, deactivate_place
@@ -35,6 +36,12 @@ def place_list(request):
         if request.query_params.get("open_now") == "true":
             from .utils import OpeningHoursParser
             places = [p for p in places if OpeningHoursParser.is_open(p.opening_hours) is True]
+
+        if request.query_params.get("page"):
+            paginator = StandardResultsPagination()
+            paginator.page_size = 30
+            result_page = paginator.paginate_queryset(places, request)
+            return paginator.get_paginated_response(PlaceSerializer(result_page, many=True).data)
 
         return success_response(PlaceSerializer(places, many=True).data)
 

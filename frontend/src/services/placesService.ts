@@ -1,5 +1,5 @@
 import apiClient from '@/lib/axios'
-import type { ApiResponse, Place } from '@/types'
+import type { ApiResponse, PaginatedResponse, Place } from '@/types'
 
 interface PlacesFilters {
   city?: string
@@ -17,6 +17,11 @@ interface PlacesFilters {
 export const placesService = {
   async list(filters: PlacesFilters = {}): Promise<Place[]> {
     const { data } = await apiClient.get<ApiResponse<Place[]>>('/places/', { params: filters })
+    return data.data
+  },
+
+  async listPaginated(filters: PlacesFilters & { page: number }): Promise<PaginatedResponse<Place>> {
+    const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Place>>>('/places/', { params: filters })
     return data.data
   },
 

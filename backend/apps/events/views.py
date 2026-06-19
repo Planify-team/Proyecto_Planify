@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework import status
 
 from apps.core.responses import success_response, created_response, no_content_response, error_response
+from apps.core.pagination import StandardResultsPagination
 from .serializers import EventSerializer, EventCreateSerializer
 from .selectors import get_published_events, get_event_by_id
 from .services import create_event, update_event, publish_event, cancel_event
@@ -22,6 +23,12 @@ def event_list(request):
             name=request.query_params.get("name"),
             place_id=request.query_params.get("place"),
         )
+        if request.query_params.get("page"):
+            paginator = StandardResultsPagination()
+            paginator.page_size = 30
+            result_page = paginator.paginate_queryset(events, request)
+            return paginator.get_paginated_response(EventSerializer(result_page, many=True).data)
+
         return success_response(EventSerializer(events, many=True).data)
 
     serializer = EventCreateSerializer(data=request.data)

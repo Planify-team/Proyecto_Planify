@@ -9,6 +9,15 @@ export function useActivities(filters = {}) {
   })
 }
 
+export function useActivitiesPaginated(filters: Record<string, unknown> & { page: number }) {
+  return useQuery({
+    queryKey: ['activities-paginated', filters],
+    queryFn: () => activitiesService.listPaginated(filters as any),
+    staleTime: 1000 * 60 * 5,
+    placeholderData: (prev) => prev,
+  })
+}
+
 export function useActivity(id: string) {
   return useQuery({
     queryKey: ['activities', id],
