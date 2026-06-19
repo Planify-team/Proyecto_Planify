@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CalendarDays, Sparkles } from 'lucide-react'
+import { CalendarDays, Sparkles, ArrowRight } from 'lucide-react'
 import { PlannerForm } from '../components/PlannerForm'
 import { ItineraryView } from '../components/ItineraryView'
 import { InspireFeed } from '../components/InspireFeed'
@@ -81,15 +81,12 @@ export default function PlannerPage() {
           )}
 
           {currentPlan && !planner.isPending && (
-            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-glass-sm">
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-glass-sm flex flex-col gap-4">
+              <div className="flex items-center justify-between">
                 <h2 className="text-base font-semibold text-gray-800">{currentPlan.title}</h2>
-                <button
-                  onClick={() => navigate(`/planes/${currentPlan.id}`)}
-                  className="text-xs text-primary-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 rounded"
-                >
-                  Ver detalle →
-                </button>
+                <span className="text-xs text-gray-500">
+                  {currentPlan.items.length} {currentPlan.items.length === 1 ? 'actividad' : 'actividades'}
+                </span>
               </div>
 
               {currentPlan.items.length === 0 ? (
@@ -99,6 +96,14 @@ export default function PlannerPage() {
               ) : (
                 <ItineraryView plan={currentPlan} readonly />
               )}
+
+              <button
+                onClick={() => navigate(`/planes/${currentPlan.id}`)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl shadow-neon-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
+              >
+                Ver plan completo
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </button>
             </div>
           )}
 

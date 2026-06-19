@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Globe, Lock, Copy, CalendarDays } from 'lucide-react'
+import { ArrowLeft, Globe, Lock, Copy, CalendarDays, Link } from 'lucide-react'
 import { toast } from 'sonner'
 import { usePlan } from '@/hooks/usePlan'
 import { useRemovePlanItem, useUpdatePlan, useUpdatePlanItem, useClonePlan } from '@/hooks/usePlanItem'
@@ -138,6 +138,20 @@ export default function PlanDetailPage() {
           </Button>
 
           <CalendarExportButton plan={plan} />
+
+          {plan.is_public && plan.slug && (
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<Link className="h-4 w-4" />}
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/planes/p/${plan.slug}`)
+                toast.success('Enlace copiado al portapapeles')
+              }}
+            >
+              Copiar enlace
+            </Button>
+          )}
 
           <Button
             variant="ghost"

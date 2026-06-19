@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { MapPin, Phone, Globe, DollarSign, ArrowLeft, Clock, Wifi, TreePine, Ticket, Accessibility } from 'lucide-react'
+import { MapPin, Phone, Globe, DollarSign, ArrowLeft, Clock, Wifi, TreePine, Ticket, Accessibility, Navigation } from 'lucide-react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import { usePlace } from '@/hooks/usePlaces'
 import { usePromotions } from '@/hooks/usePromotions'
@@ -165,10 +165,22 @@ export default function PlaceDetail() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex items-center gap-3 bg-gray-100 rounded-xl p-3 border border-gray-200/30">
           <MapPin className="h-5 w-5 text-primary-600 flex-shrink-0" aria-hidden="true" />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-xs text-gray-500">Dirección</p>
             <p className="text-sm font-medium text-gray-900 truncate">{place.address}, {place.city}</p>
           </div>
+          {hasCoords && (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${center[0]},${center[1]}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs text-primary-600 hover:underline flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 rounded"
+              aria-label="Ver en Google Maps"
+            >
+              <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+              Maps
+            </a>
+          )}
         </div>
         {place.phone && (
           <div className="flex items-center gap-3 bg-gray-100 rounded-xl p-3 border border-gray-200/30">
