@@ -25,6 +25,3 @@ class SoftDeleteModel(TimeStampedModel):
         self.is_active = False
         self.save(update_fields=["is_active", "updated_at"])
 
-    def restore(self):
-        self.is_active = True
-        self.save(update_fields=["is_active", "updated_at"])

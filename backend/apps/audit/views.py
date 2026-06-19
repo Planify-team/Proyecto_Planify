@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from apps.core.permissions import IsAdminOrModerator
 from apps.core.responses import success_response
-from .selectors import get_audit_logs_for_user, get_audit_logs_for_entity
+from .selectors import get_audit_logs_for_user
 from .serializers import AuditLogSerializer
 
 

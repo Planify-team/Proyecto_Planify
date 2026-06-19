@@ -47,15 +47,8 @@ def get_active_places(
 
 
 def get_place_by_id(place_id):
-    from apps.reviews.models import Review
-    avg_sub = (
-        Review.objects.filter(entity_type="place", entity_id=OuterRef("id"))
-        .values("entity_id").annotate(a=Avg("stars")).values("a")[:1]
-    )
-    cnt_sub = (
-        Review.objects.filter(entity_type="place", entity_id=OuterRef("id"))
-        .values("entity_id").annotate(c=Count("id")).values("c")[:1]
-    )
+    avg_sub = _rating_subquery("place").annotate(a=Avg("stars")).values("a")[:1]
+    cnt_sub = _rating_subquery("place").annotate(c=Count("id")).values("c")[:1]
     try:
         return (
             Place.objects

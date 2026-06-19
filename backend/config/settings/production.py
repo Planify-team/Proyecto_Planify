@@ -12,6 +12,3 @@ SECURE_HSTS_PRELOAD = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-REST_FRAMEWORK_DEFAULT_RENDERER_CLASSES = [  # noqa
-    "rest_framework.renderers.JSONRenderer",
-]

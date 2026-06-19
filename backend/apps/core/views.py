@@ -65,7 +65,7 @@ def search(request):
     )
     activities = list(
         Activity.objects.filter(is_active=True, name__icontains=q)
-        .values("id", "name", "category", "activity_type", "min_budget", "indoor", "outdoor", "address", "city")[:10]
+        .values("id", "name", "category", "activity_type", "min_budget", "indoor", "outdoor", "address", "city", "image_url")[:10]
     )
     events = list(
         Event.objects.filter(status=EventStatus.PUBLISHED, title__icontains=q)

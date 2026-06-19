@@ -39,19 +39,13 @@ def get_active_activities(activity_type=None, indoor=None, outdoor=None, budget=
 
 
 def get_activity_by_id(activity_id):
-    from apps.reviews.models import Review
-    avg_sub = (
-        Review.objects.filter(entity_type="activity", entity_id=OuterRef("id"))
-        .values("entity_id").annotate(a=Avg("stars")).values("a")[:1]
-    )
-    cnt_sub = (
-        Review.objects.filter(entity_type="activity", entity_id=OuterRef("id"))
-        .values("entity_id").annotate(c=Count("id")).values("c")[:1]
-    )
     try:
         return (
             Activity.objects.select_related("place")
-            .annotate(avg_rating=Subquery(avg_sub), review_count=Subquery(cnt_sub))
+            .annotate(
+                avg_rating=Subquery(_rating_subquery("activity", "avg")),
+                review_count=Subquery(_rating_subquery("activity", "count")),
+            )
             .get(id=activity_id, is_active=True)
         )
     except Activity.DoesNotExist:

@@ -35,19 +35,13 @@ def get_published_events(category=None, date_from=None, date_to=None, city=None,
 
 
 def get_event_by_id(event_id):
-    from apps.reviews.models import Review
-    avg_sub = (
-        Review.objects.filter(entity_type="event", entity_id=OuterRef("id"))
-        .values("entity_id").annotate(a=Avg("stars")).values("a")[:1]
-    )
-    cnt_sub = (
-        Review.objects.filter(entity_type="event", entity_id=OuterRef("id"))
-        .values("entity_id").annotate(c=Count("id")).values("c")[:1]
-    )
     try:
         return (
             Event.objects.select_related("place", "organizer")
-            .annotate(avg_rating=Subquery(avg_sub), review_count=Subquery(cnt_sub))
+            .annotate(
+                avg_rating=Subquery(_rating_subquery("avg")),
+                review_count=Subquery(_rating_subquery("count")),
+            )
             .get(id=event_id)
         )
     except Event.DoesNotExist:
