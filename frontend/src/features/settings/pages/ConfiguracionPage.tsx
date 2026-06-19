@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Settings, Lock, AlertTriangle } from 'lucide-react'
+import { Settings, Lock, AlertTriangle, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import apiClient from '@/lib/axios'
 import Card from '@/components/ui/Card'
@@ -24,6 +24,20 @@ type PasswordForm = z.infer<typeof passwordSchema>
 
 export default function ConfiguracionPage() {
   const [apiError, setApiError] = useState('')
+  const [showOld, setShowOld] = useState(false)
+  const [showNew, setShowNew] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  const eyeToggle = (show: boolean, setShow: (v: boolean) => void, label: string) => (
+    <button
+      type="button"
+      onClick={() => setShow(!show)}
+      aria-label={label}
+      className="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 rounded"
+    >
+      {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+    </button>
+  )
 
   const {
     register,
@@ -71,23 +85,26 @@ export default function ConfiguracionPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
           <Input
             label="Contraseña actual"
-            type="password"
+            type={showOld ? 'text' : 'password'}
             autoComplete="current-password"
             error={errors.old_password?.message}
+            rightElement={eyeToggle(showOld, setShowOld, showOld ? 'Ocultar contraseña actual' : 'Mostrar contraseña actual')}
             {...register('old_password')}
           />
           <Input
             label="Nueva contraseña"
-            type="password"
+            type={showNew ? 'text' : 'password'}
             autoComplete="new-password"
             error={errors.new_password?.message}
+            rightElement={eyeToggle(showNew, setShowNew, showNew ? 'Ocultar nueva contraseña' : 'Mostrar nueva contraseña')}
             {...register('new_password')}
           />
           <Input
             label="Confirmar nueva contraseña"
-            type="password"
+            type={showConfirm ? 'text' : 'password'}
             autoComplete="new-password"
             error={errors.new_password_confirm?.message}
+            rightElement={eyeToggle(showConfirm, setShowConfirm, showConfirm ? 'Ocultar confirmación' : 'Mostrar confirmación')}
             {...register('new_password_confirm')}
           />
 

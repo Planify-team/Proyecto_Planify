@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -6,7 +7,7 @@ import { useLogin } from '@/hooks/useAuth'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Eye, EyeOff } from 'lucide-react'
 
 const loginSchema = z.object({
   email: z.string().email('Ingresá un correo electrónico válido'),
@@ -17,6 +18,7 @@ type LoginForm = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
   const login = useLogin()
+  const [showPassword, setShowPassword] = useState(false)
   const {
     register,
     handleSubmit,
@@ -41,9 +43,19 @@ export default function LoginPage() {
         />
         <Input
           label="Contraseña"
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           autoComplete="current-password"
           error={errors.password?.message}
+          rightElement={
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              className="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 rounded"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          }
           {...register('password')}
         />
 

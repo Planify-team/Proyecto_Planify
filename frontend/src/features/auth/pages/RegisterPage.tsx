@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -6,7 +7,7 @@ import { useRegister } from '@/hooks/useAuth'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Eye, EyeOff } from 'lucide-react'
 
 const registerSchema = z
   .object({
@@ -25,6 +26,8 @@ type RegisterForm = z.infer<typeof registerSchema>
 
 export default function RegisterPage() {
   const register_ = useRegister()
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const {
     register,
     handleSubmit,
@@ -32,6 +35,17 @@ export default function RegisterPage() {
   } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) })
 
   const onSubmit = (data: RegisterForm) => register_.mutate(data)
+
+  const EyeToggle = ({ show, onToggle, label }: { show: boolean; onToggle: () => void; label: string }) => (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={label}
+      className="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 rounded"
+    >
+      {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+    </button>
+  )
 
   return (
     <Card className="w-full max-w-sm">
@@ -47,16 +61,18 @@ export default function RegisterPage() {
         <Input label="Correo electrónico" type="email" autoComplete="email" error={errors.email?.message} {...register('email')} />
         <Input
           label="Contraseña"
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           autoComplete="new-password"
           error={errors.password?.message}
+          rightElement={<EyeToggle show={showPassword} onToggle={() => setShowPassword((v) => !v)} label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'} />}
           {...register('password')}
         />
         <Input
           label="Confirmar contraseña"
-          type="password"
+          type={showConfirm ? 'text' : 'password'}
           autoComplete="new-password"
           error={errors.password_confirm?.message}
+          rightElement={<EyeToggle show={showConfirm} onToggle={() => setShowConfirm((v) => !v)} label={showConfirm ? 'Ocultar confirmación' : 'Mostrar confirmación'} />}
           {...register('password_confirm')}
         />
 
