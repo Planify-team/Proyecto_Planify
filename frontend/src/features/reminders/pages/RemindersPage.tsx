@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, Trash2, Calendar } from 'lucide-react'
+import { Bell, Trash2, Calendar, CheckCircle2, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import { useReminders, useRemoveReminder } from '@/hooks/useReminders'
 import EmptyState from '@/components/common/EmptyState'
@@ -14,10 +14,15 @@ function formatDate(iso: string): string {
   }).format(new Date(iso))
 }
 
+function isPast(iso: string): boolean {
+  return new Date(iso) < new Date()
+}
+
 function ReminderItem({ reminder }: { reminder: Reminder }) {
   const navigate = useNavigate()
   const remove = useRemoveReminder()
   const [confirming, setConfirming] = useState(false)
+  const past = isPast(reminder.reminder_date)
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -33,21 +38,24 @@ function ReminderItem({ reminder }: { reminder: Reminder }) {
 
   return (
     <div
-      className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 shadow-glass-sm hover:shadow-neon-sm hover:border-primary-500/30 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
+      className={`flex items-center gap-4 p-4 bg-white rounded-xl border shadow-glass-sm hover:shadow-neon-sm hover:border-primary-500/30 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${past ? 'opacity-60 border-gray-200' : 'border-gray-200'}`}
       onClick={() => navigate(`/events/${reminder.event}`)}
       role="button"
       tabIndex={0}
       aria-label={reminder.event_title}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/events/${reminder.event}`)}
     >
-      <div className="w-10 h-10 bg-primary-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-        <Bell className="h-5 w-5 text-primary-600" />
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${past ? 'bg-gray-100' : 'bg-primary-500/10'}`} aria-hidden="true">
+        {past
+          ? <CheckCircle2 className="h-5 w-5 text-gray-400" />
+          : <Bell className="h-5 w-5 text-primary-600" />
+        }
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-gray-900 truncate">{reminder.event_title}</p>
-        <div className="flex items-center gap-1.5 text-sm text-gray-500 mt-0.5">
-          <Calendar className="h-3.5 w-3.5" />
+        <p className={`font-semibold truncate ${past ? 'text-gray-500' : 'text-gray-900'}`}>{reminder.event_title}</p>
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
+          <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
           <span>{formatDate(reminder.reminder_date)}</span>
         </div>
       </div>
@@ -106,13 +114,34 @@ export default function RemindersPage() {
           icon={<Bell className="h-8 w-8 text-gray-400" />}
           action={{ label: 'Explorar eventos', onClick: () => navigate('/explorar') }}
         />
-      ) : (
-        <div className="flex flex-col gap-3">
-          {reminders.map((r) => (
-            <ReminderItem key={r.id} reminder={r} />
-          ))}
-        </div>
-      )}
+      ) : (() => {
+        const upcoming = reminders.filter((r) => !isPast(r.reminder_date)).sort((a, b) => a.reminder_date < b.reminder_date ? -1 : 1)
+        const past = reminders.filter((r) => isPast(r.reminder_date)).sort((a, b) => a.reminder_date < b.reminder_date ? 1 : -1)
+        return (
+          <div className="flex flex-col gap-6">
+            {upcoming.length > 0 && (
+              <section>
+                <h2 className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  <Clock className="h-3.5 w-3.5" aria-hidden="true" /> Próximos
+                </h2>
+                <div className="flex flex-col gap-3">
+                  {upcoming.map((r) => <ReminderItem key={r.id} reminder={r} />)}
+                </div>
+              </section>
+            )}
+            {past.length > 0 && (
+              <section>
+                <h2 className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> Pasados
+                </h2>
+                <div className="flex flex-col gap-3">
+                  {past.map((r) => <ReminderItem key={r.id} reminder={r} />)}
+                </div>
+              </section>
+            )}
+          </div>
+        )
+      })()}
     </div>
   )
 }

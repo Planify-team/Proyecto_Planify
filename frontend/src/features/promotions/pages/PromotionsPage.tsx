@@ -1,4 +1,4 @@
-import { Tag, MapPin, Calendar, Percent } from 'lucide-react'
+import { Tag, MapPin, Calendar, Percent, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { usePromotions } from '@/hooks/usePromotions'
 import EmptyState from '@/components/common/EmptyState'
@@ -8,8 +8,14 @@ function formatDate(iso: string) {
   return new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso))
 }
 
+function daysUntil(iso: string): number {
+  return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000)
+}
+
 function PromotionCard({ promo }: { promo: Promotion }) {
   const navigate = useNavigate()
+  const days = daysUntil(promo.end_date)
+  const expiringSoon = days >= 0 && days <= 3
   return (
     <div
       className="bg-white rounded-xl border border-gray-200 shadow-glass-sm overflow-hidden hover:shadow-neon-sm hover:border-primary-500/30 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
@@ -24,7 +30,14 @@ function PromotionCard({ promo }: { promo: Promotion }) {
           <Percent className="h-5 w-5" />
           {promo.discount_percentage}% OFF
         </span>
-        <Tag className="h-5 w-5 text-white/80" />
+        {expiringSoon ? (
+          <span className="flex items-center gap-1 bg-white/20 text-white text-xs font-semibold px-2 py-1 rounded-full">
+            <Clock className="h-3 w-3" aria-hidden="true" />
+            {days === 0 ? 'Vence hoy' : `${days} día${days !== 1 ? 's' : ''}`}
+          </span>
+        ) : (
+          <Tag className="h-5 w-5 text-white/80" aria-hidden="true" />
+        )}
       </div>
       <div className="p-4">
         <h3 className="font-semibold text-gray-900">{promo.title}</h3>
@@ -34,12 +47,12 @@ function PromotionCard({ promo }: { promo: Promotion }) {
         <div className="flex items-center gap-4 mt-3">
           {promo.place_name && (
             <span className="text-xs text-primary-600 flex items-center gap-1 font-medium">
-              <MapPin className="h-3 w-3" />
+              <MapPin className="h-3 w-3" aria-hidden="true" />
               {promo.place_name}
             </span>
           )}
-          <span className="text-xs text-gray-500 flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
+          <span className={`text-xs flex items-center gap-1 ${expiringSoon ? 'text-orange-500 font-medium' : 'text-gray-500'}`}>
+            <Calendar className="h-3 w-3" aria-hidden="true" />
             Hasta {formatDate(promo.end_date)}
           </span>
         </div>

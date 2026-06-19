@@ -4,6 +4,17 @@ import { Search, MapPin, Calendar, Zap, DollarSign } from 'lucide-react'
 import { useSearch } from '@/hooks/useSearch'
 import EmptyState from '@/components/common/EmptyState'
 
+const SEARCH_SUGGESTIONS = [
+  { q: 'restaurante', emoji: '🍽️', label: 'Restaurantes' },
+  { q: 'bar', emoji: '🍺', label: 'Bares' },
+  { q: 'museo', emoji: '🏛️', label: 'Museos' },
+  { q: 'parque', emoji: '🌳', label: 'Parques' },
+  { q: 'teatro', emoji: '🎭', label: 'Teatro' },
+  { q: 'cine', emoji: '🎬', label: 'Cine' },
+  { q: 'concierto', emoji: '🎵', label: 'Conciertos' },
+  { q: 'deporte', emoji: '⚽', label: 'Deportes' },
+]
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-AR', {
     day: 'numeric', month: 'short', year: 'numeric',
@@ -90,6 +101,7 @@ export default function SearchResultsPage() {
               <h2 className="flex items-center gap-2 text-base font-semibold text-gray-800 mb-3">
                 <MapPin className="h-4 w-4 text-primary-600" />
                 Lugares
+                <span className="ml-1 text-xs font-medium bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{data.places.length}</span>
               </h2>
               <div className="grid gap-3">
                 {data.places.map((place) => (
@@ -124,6 +136,7 @@ export default function SearchResultsPage() {
               <h2 className="flex items-center gap-2 text-base font-semibold text-gray-800 mb-3">
                 <Zap className="h-4 w-4 text-primary-600" />
                 Actividades
+                <span className="ml-1 text-xs font-medium bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{data.activities.length}</span>
               </h2>
               <div className="grid gap-3">
                 {data.activities.map((activity) => (
@@ -174,6 +187,7 @@ export default function SearchResultsPage() {
               <h2 className="flex items-center gap-2 text-base font-semibold text-gray-800 mb-3">
                 <Calendar className="h-4 w-4 text-primary-600" />
                 Eventos
+                <span className="ml-1 text-xs font-medium bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{data.events.length}</span>
               </h2>
               <div className="grid gap-3">
                 {data.events.map((event) => (
@@ -213,11 +227,21 @@ export default function SearchResultsPage() {
       )}
 
       {!query && (
-        <EmptyState
-          title="Buscá lo que quieras"
-          description="Ingresá el nombre de un lugar, actividad o evento para encontrarlo."
-          icon={<Search className="h-10 w-10" />}
-        />
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Sugerencias</p>
+          <div className="flex flex-wrap gap-2">
+            {SEARCH_SUGGESTIONS.map((s) => (
+              <button
+                key={s.q}
+                onClick={() => { setInput(s.q); setSearchParams({ q: s.q }); setQuery(s.q) }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:border-primary-500/40 hover:text-primary-600 transition-colors shadow-glass-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
+              >
+                <span aria-hidden="true">{s.emoji}</span>
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   )
