@@ -134,7 +134,7 @@ export default function ExplorePage() {
   const activeFilterCount = tab === 'lugares'
     ? Object.values(placeFilters).filter((v) => v !== undefined && v !== false).length + (placeFilters.fee === false ? 1 : 0)
     : tab === 'actividades'
-    ? Object.values(activityFilters).filter((v) => v !== undefined && v !== false).length + (activityFilters.type ? 1 : 0)
+    ? Object.values(activityFilters).filter((v) => v !== undefined && v !== false).length
     : tab === 'eventos'
     ? Object.values(eventFilters).filter(Boolean).length
     : 0
