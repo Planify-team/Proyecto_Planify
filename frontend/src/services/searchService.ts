@@ -20,6 +20,7 @@ export interface SearchResults {
     outdoor: boolean
     address: string
     city: string
+    image_url: string
   }>
   events: Array<{
     id: string

@@ -132,9 +132,13 @@ export default function SearchResultsPage() {
                     onClick={() => navigate(`/activities/${activity.id}`)}
                     className="flex items-center gap-4 p-3 bg-white rounded-xl border border-gray-200 shadow-glass-sm hover:shadow-neon-sm hover:border-primary-500/30 transition-all text-left w-full"
                   >
-                    <div className="h-14 w-14 rounded-lg bg-primary-500/10 flex items-center justify-center flex-shrink-0">
-                      <Zap className="h-6 w-6 text-primary-300" />
-                    </div>
+                    {activity.image_url ? (
+                      <img src={activity.image_url} alt={activity.name} className="h-14 w-14 rounded-lg object-cover flex-shrink-0" loading="lazy" />
+                    ) : (
+                      <div className="h-14 w-14 rounded-lg bg-primary-500/10 flex items-center justify-center flex-shrink-0">
+                        <Zap className="h-6 w-6 text-primary-300" />
+                      </div>
+                    )}
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-gray-900 truncate">{activity.name}</p>
                       {activity.address ? (

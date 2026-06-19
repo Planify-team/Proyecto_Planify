@@ -34,6 +34,13 @@ const ACTIVITY_SHORTCUTS = [
   { type: 'bar',        emoji: '🍺', label: 'Bares' },
 ]
 
+function getGreeting(firstName: string) {
+  const h = new Date().getHours()
+  if (h < 12) return `Buenos días, ${firstName}`
+  if (h < 19) return `Buenas tardes, ${firstName}`
+  return `Buenas noches, ${firstName}`
+}
+
 function formatPlanDate(iso: string) {
   return new Date(iso + 'T12:00:00').toLocaleDateString('es-AR', {
     day: 'numeric', month: 'short',
@@ -69,7 +76,7 @@ export default function HomePage() {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Hola, {user?.first_name} 👋
+            {getGreeting(user?.first_name ?? '')} 👋
           </h1>
           <p className="text-gray-500 text-sm capitalize mt-0.5">{TODAY_LABEL} · Buenos Aires</p>
         </div>

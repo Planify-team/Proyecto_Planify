@@ -94,7 +94,10 @@ export default function EventDetail() {
       </button>
 
       {event.image_url && (
-        <img src={event.image_url} alt={event.title} className="w-full h-56 object-cover rounded-xl" decoding="async" />
+        <div className="relative rounded-xl overflow-hidden">
+          <img src={event.image_url} alt={event.title} className="w-full h-56 object-cover" loading="lazy" decoding="async" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" aria-hidden="true" />
+        </div>
       )}
 
       <div className="flex items-start justify-between gap-4">
@@ -137,7 +140,7 @@ export default function EventDetail() {
           <DollarSign className="h-5 w-5 text-primary-600 flex-shrink-0" aria-hidden="true" />
           <div>
             <p className="text-xs text-gray-500">Precio</p>
-            <p className="text-sm font-medium text-gray-900">{price === 0 ? 'Gratis' : `$${event.price}`}</p>
+            <p className="text-sm font-medium text-gray-900">{price === 0 ? 'Gratis' : `$${Math.round(price).toLocaleString('es-AR')}`}</p>
           </div>
         </div>
         {event.minimum_age > 0 && (

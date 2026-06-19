@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, MapPin, Activity, Calendar, CheckCircle, Navigation, DollarSign } from 'lucide-react'
+import { Sparkles, MapPin, Activity, Calendar, CheckCircle, Navigation, DollarSign, ArrowRight } from 'lucide-react'
 import { useRecommendations } from '@/hooks/useRecommendations'
 import { useWeather } from '@/hooks/useWeather'
 import FavoriteButton from '@/components/ui/FavoriteButton'
@@ -178,6 +178,19 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
       aria-label={name}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && itemId && navigate(detailPath)}
     >
+      {/* Thumbnail — available for events and places */}
+      {(rec.event_detail?.image_url || rec.place_detail?.image_url) && (
+        <div className="relative -mx-4 -mt-4 mb-1 rounded-t-xl overflow-hidden h-28">
+          <img
+            src={rec.event_detail?.image_url ?? rec.place_detail?.image_url ?? ''}
+            alt={name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" aria-hidden="true" />
+        </div>
+      )}
+
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
@@ -255,7 +268,9 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
 
       {itemId && rec.item_type && (
         <div className="flex items-center justify-between">
-          <span className="text-xs text-primary-600 font-medium">Ver detalle →</span>
+          <span className="flex items-center gap-1 text-xs text-primary-600 font-medium">
+            Ver detalle <ArrowRight className="h-3 w-3" aria-hidden="true" />
+          </span>
           <div onClick={(e) => e.stopPropagation()}>
             <FavoriteButton itemId={itemId} itemType={rec.item_type} />
           </div>
