@@ -8,7 +8,6 @@ urlpatterns = [
     path("search/", search, name="search"),
     path("auth/", include("apps.users.urls.auth")),
     path("users/", include("apps.users.urls.users")),
-    path("preferences/", include("apps.users.urls.preferences")),
     path("places/", include("apps.places.urls")),
     path("events/", include("apps.events.urls")),
     path("activities/", include("apps.activities.urls")),

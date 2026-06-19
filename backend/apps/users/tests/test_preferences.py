@@ -9,7 +9,7 @@ def pref_payload():
 
 @pytest.mark.django_db
 class TestPreferenceList:
-    url = "/api/v1/preferences/"
+    url = "/api/v1/users/me/preferences/"
 
     def test_unauthenticated_denied(self, api_client):
         response = api_client.get(self.url)
@@ -40,7 +40,7 @@ class TestPreferenceList:
 
 @pytest.mark.django_db
 class TestPreferenceDetail:
-    list_url = "/api/v1/preferences/"
+    list_url = "/api/v1/users/me/preferences/"
 
     def _create_pref(self, client):
         payload = [{"category": "cinema", "value": "drama", "weight": 2}]
