@@ -85,13 +85,17 @@ export default function OrganizerDashboardPage() {
           />
         ) : (
           <div className="space-y-2">
-            {events.map(event => (
-              <div key={event.id} onClick={() => navigate(`/events/${event.id}`)} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/events/${event.id}`)} role="button" tabIndex={0} aria-label={event.title} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-xl shadow-glass-sm hover:border-primary-500/30 hover:shadow-neon-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{event.title}</p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(event.start_date).toLocaleDateString('es-AR')} · {event.category}
-                  </p>
+            {events.map(event => {
+              const d = new Date(event.start_date)
+              return (
+              <div key={event.id} onClick={() => navigate(`/events/${event.id}`)} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/events/${event.id}`)} role="button" tabIndex={0} aria-label={event.title} className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl shadow-glass-sm hover:border-primary-500/30 hover:shadow-neon-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
+                <div className="flex-shrink-0 w-10 text-center bg-primary-500/10 rounded-lg py-1">
+                  <p className="text-base font-bold text-primary-600 leading-none">{d.getDate()}</p>
+                  <p className="text-[9px] font-medium text-primary-500 uppercase">{d.toLocaleDateString('es-AR', { month: 'short' })}</p>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{event.title}</p>
+                  <p className="text-xs text-gray-500">{event.category}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {event.avg_rating != null && (
@@ -102,7 +106,7 @@ export default function OrganizerDashboardPage() {
                   </span>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         )}
       </section>

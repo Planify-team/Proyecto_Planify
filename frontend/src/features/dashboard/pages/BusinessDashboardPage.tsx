@@ -1,4 +1,4 @@
-import { Building2, Tag, Star, MapPin } from 'lucide-react'
+import { Building2, Tag, Star, MapPin, Percent } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useBusinessStats, useOwnedPlaces, useOwnedPromotions } from '@/hooks/useDashboard'
 import EmptyState from '@/components/common/EmptyState'
@@ -108,9 +108,16 @@ export default function BusinessDashboardPage() {
           <div className="space-y-2">
             {promotions.map(promo => (
               <div key={promo.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-xl shadow-glass-sm">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{promo.title}</p>
-                  <p className="text-xs text-gray-500">{promo.place_name}</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                    <span className="text-xs font-bold text-green-500 flex items-center">
+                      <Percent className="h-3 w-3" />{promo.discount_percentage}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{promo.title}</p>
+                    <p className="text-xs text-gray-500">{promo.place_name}</p>
+                  </div>
                 </div>
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                   promo.is_currently_active ? 'bg-green-500/15 text-green-400' : 'bg-gray-300/10 text-gray-500'
