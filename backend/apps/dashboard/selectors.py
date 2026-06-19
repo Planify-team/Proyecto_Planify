@@ -1,6 +1,3 @@
-from django.utils import timezone
-
-
 def get_business_stats(user):
     from apps.places.models import Place
     from apps.promotions.models import Promotion, PromotionStatus
@@ -112,9 +109,9 @@ def get_user_activity_stats(user):
 
     favorite_category = category_counter.most_common(1)[0][0] if category_counter else None
 
-    # Streak: consecutive weeks with at least 1 completed plan (ending at current week)
+    # Streak: consecutive weeks with at least 1 completed plan
+    import datetime
     completed_dates = [p.date for p in completed_plans]
-    current_week = timezone.now().date().isocalendar()[:2]  # (year, week)
 
     def to_iso_week(d):
         iso = d.isocalendar()
@@ -122,34 +119,10 @@ def get_user_activity_stats(user):
 
     completed_weeks = set(to_iso_week(d) for d in completed_dates)
 
-    # Walk backwards from current week
-    current_streak = 0
-    best_streak = 0
-    streak = 0
-    check_year, check_week = current_week
-
-    import datetime
-    check_date = timezone.now().date()
-
-    for _ in range(104):  # max 2 years back
-        yw = to_iso_week(check_date)
-        if yw in completed_weeks:
-            streak += 1
-            if current_streak == 0 or streak == current_streak + 1:
-                current_streak = streak
-        else:
-            if current_streak == 0:
-                current_streak = 0  # no streak if current week has no plan
-            streak = 0
-        best_streak = max(best_streak, streak)
-        check_date -= datetime.timedelta(weeks=1)
-
-    # Recalculate current_streak properly
     current_streak = 0
     check_date = timezone.now().date()
     for _ in range(104):
-        yw = to_iso_week(check_date)
-        if yw in completed_weeks:
+        if to_iso_week(check_date) in completed_weeks:
             current_streak += 1
         else:
             break
@@ -157,14 +130,11 @@ def get_user_activity_stats(user):
 
     best_streak = 0
     temp_streak = 0
-    check_date = timezone.now().date()
     prev_yw = None
-    sorted_weeks = sorted(completed_weeks, reverse=True)
-    for yw in sorted_weeks:
+    for yw in sorted(completed_weeks, reverse=True):
         if prev_yw is None:
             temp_streak = 1
         else:
-            # Check consecutive
             prev_d = datetime.date.fromisocalendar(prev_yw[0], prev_yw[1], 1)
             curr_d = datetime.date.fromisocalendar(yw[0], yw[1], 1)
             if (prev_d - curr_d).days == 7:
