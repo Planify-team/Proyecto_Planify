@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '@/services/authService'
 import { useAuthStore } from '@/store/authStore'
+import apiClient from '@/lib/axios'
+import type { User } from '@/types'
 
 export function useLogin() {
   const { setAuth } = useAuthStore()
@@ -49,9 +51,7 @@ export function useUpdateProfile() {
 
   return useMutation({
     mutationFn: async (payload: { first_name?: string; last_name?: string }) => {
-      const { data } = await import('@/lib/axios').then(({ default: api }) =>
-        api.patch<{ data: import('@/types').User }>(`/users/${user!.id}/`, payload)
-      )
+      const { data } = await apiClient.patch<{ data: User }>(`/users/${user!.id}/`, payload)
       return data.data
     },
     onSuccess: (updated) => setUser(updated),
