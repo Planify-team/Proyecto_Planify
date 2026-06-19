@@ -8,9 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
+    "test": "NODE_OPTIONS=--max-old-space-size=3072 vitest",
+    "test:ui": "NODE_OPTIONS=--max-old-space-size=3072 vitest --ui",
+    "test:coverage": "NODE_OPTIONS=--max-old-space-size=3072 vitest run --coverage",
     "test:e2e": "playwright test"
   },
   "dependencies": {
