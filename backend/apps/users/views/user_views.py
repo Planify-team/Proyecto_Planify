@@ -72,9 +72,11 @@ def user_preference_detail(request, pk):
     if request.method == "PATCH":
         serializer = UserPreferenceSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        changed = list(serializer.validated_data.keys())
         for field, value in serializer.validated_data.items():
             setattr(pref, field, value)
-        pref.save()
+        if changed:
+            pref.save(update_fields=changed)
         log_action(user=request.user, action="update", entity_type="user_preference", entity_id=str(pref.id))
         return success_response(UserPreferenceSerializer(pref).data)
 
