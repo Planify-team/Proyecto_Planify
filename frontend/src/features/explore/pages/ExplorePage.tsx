@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { MapPin, Activity, Calendar, TrendingUp, Navigation, Filter, X, Globe, Compass, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { usePlaces, usePlacesPaginated } from '@/hooks/usePlaces'
@@ -102,14 +102,14 @@ export default function ExplorePage() {
   const externalNearby = useExternalPlaces(
     nearbyCoords ? { lat: nearbyCoords.lat, lon: nearbyCoords.lon, radius: 3000 } : null,
   )
-  const nearbyAll = (() => {
+  const nearbyAll = useMemo(() => {
     const seen = new Set<string>()
     return [...(nearbyPlaces.data ?? []), ...(externalNearby.data ?? [])].filter((p) => {
       if (seen.has(p.id)) return false
       seen.add(p.id)
       return true
     })
-  })()
+  }, [nearbyPlaces.data, externalNearby.data])
 
   const { data: trending } = useTrending()
   const showTrending = !search && tab !== 'cerca'
