@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useLogin } from '@/hooks/useAuth'
+import { getApiErrorMessage } from '@/lib/errors'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
@@ -62,7 +63,7 @@ export default function LoginPage() {
         {login.isError && (
           <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 rounded-xl p-3">
             <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-            {(login.error as any)?.response?.data?.error?.message ?? 'Error al ingresar. Intentá de nuevo.'}
+            {getApiErrorMessage(login.error, 'Error al ingresar. Intentá de nuevo.')}
           </div>
         )}
 

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRegister } from '@/hooks/useAuth'
+import { getApiErrorMessage } from '@/lib/errors'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
@@ -24,6 +25,19 @@ const registerSchema = z
 
 type RegisterForm = z.infer<typeof registerSchema>
 
+function EyeToggle({ show, onToggle, label }: { show: boolean; onToggle: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={label}
+      className="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 rounded"
+    >
+      {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+    </button>
+  )
+}
+
 export default function RegisterPage() {
   const register_ = useRegister()
   const [showPassword, setShowPassword] = useState(false)
@@ -35,17 +49,6 @@ export default function RegisterPage() {
   } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) })
 
   const onSubmit = (data: RegisterForm) => register_.mutate(data)
-
-  const EyeToggle = ({ show, onToggle, label }: { show: boolean; onToggle: () => void; label: string }) => (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-label={label}
-      className="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 rounded"
-    >
-      {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-    </button>
-  )
 
   return (
     <Card className="w-full max-w-sm">
@@ -79,7 +82,7 @@ export default function RegisterPage() {
         {register_.isError && (
           <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 rounded-xl p-3">
             <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-            {(register_.error as any)?.response?.data?.error?.message ?? 'Error al registrarse. Intentá de nuevo.'}
+            {getApiErrorMessage(register_.error, 'Error al registrarse. Intentá de nuevo.')}
           </div>
         )}
 
