@@ -34,10 +34,9 @@ export function ItineraryView({ plan, onRemoveItem, onFeedbackItem, onSaveNote, 
         return (
           <div key={slot}>
             <div className="flex items-center gap-2 mb-3">
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${SLOT_COLORS[slot]}`}>
+              <h3 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${SLOT_COLORS[slot]}`}>
                 {SLOT_LABELS[slot]}
-              </span>
-              <h3 className="text-sm font-semibold text-gray-600">{SLOT_LABELS[slot]}</h3>
+              </h3>
               {items.length > 0 && (
                 <span className="text-xs text-gray-400 font-medium">{items.length} {items.length === 1 ? 'actividad' : 'actividades'}</span>
               )}

@@ -1,14 +1,6 @@
 import math
-from django.db.models import Avg, Count, OuterRef, Subquery
 from .models import Place
-
-
-def _rating_subquery(entity_type: str):
-    from apps.reviews.models import Review
-    return (
-        Review.objects.filter(entity_type=entity_type, entity_id=OuterRef("id"))
-        .values("entity_id")
-    )
+from apps.core.selectors import annotate_ratings
 
 
 def get_active_places(
@@ -39,20 +31,11 @@ def get_active_places(
         qs = qs.filter(wheelchair__in=["yes", "limited"])
     if cuisine:
         qs = qs.filter(cuisine__icontains=cuisine)
-    avg_sub = _rating_subquery("place").annotate(a=Avg("stars")).values("a")[:1]
-    cnt_sub = _rating_subquery("place").annotate(c=Count("id")).values("c")[:1]
-    qs = qs.annotate(avg_rating=Subquery(avg_sub), review_count=Subquery(cnt_sub))
-    return qs.order_by("name")
+    return annotate_ratings(qs, "place").order_by("name")
 
 
 def get_place_by_id(place_id):
-    avg_sub = _rating_subquery("place").annotate(a=Avg("stars")).values("a")[:1]
-    cnt_sub = _rating_subquery("place").annotate(c=Count("id")).values("c")[:1]
     try:
-        return (
-            Place.objects
-            .annotate(avg_rating=Subquery(avg_sub), review_count=Subquery(cnt_sub))
-            .get(id=place_id, is_active=True)
-        )
+        return annotate_ratings(Place.objects.all(), "place").get(id=place_id, is_active=True)
     except Place.DoesNotExist:
         return None

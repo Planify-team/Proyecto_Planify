@@ -120,6 +120,7 @@ export default function ReviewSection({ entityType, entityId }: Props) {
   }
 
   const { rating, my_review, reviews } = data ?? { rating: { average: 0, count: 0 }, my_review: null, reviews: [] }
+  const otherReviews = reviews.filter((r) => !user || r.user_email !== user.email)
 
   return (
     <div className="flex flex-col gap-4">
@@ -186,29 +187,27 @@ export default function ReviewSection({ entityType, entityId }: Props) {
         </div>
       )}
 
-      {reviews.filter((r) => !user || r.user_email !== user.email).length > 0 && (
+      {otherReviews.length > 0 && (
         <div className="flex flex-col gap-3">
-          {reviews
-            .filter((r) => !user || r.user_email !== user.email)
-            .map((review) => (
-              <div key={review.id} className="bg-white rounded-xl p-4 border border-gray-200">
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full bg-primary-500/15 flex items-center justify-center text-xs font-semibold text-primary-600">
-                      {review.user_name[0]?.toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{review.user_name}</p>
-                      <StarDisplay value={review.stars} />
-                    </div>
+          {otherReviews.map((review) => (
+            <div key={review.id} className="bg-white rounded-xl p-4 border border-gray-200">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full bg-primary-500/15 flex items-center justify-center text-xs font-semibold text-primary-600">
+                    {review.user_name[0]?.toUpperCase()}
                   </div>
-                  <span className="text-xs text-gray-400">
-                    {new Date(review.created_at).toLocaleDateString('es-AR')}
-                  </span>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{review.user_name}</p>
+                    <StarDisplay value={review.stars} />
+                  </div>
                 </div>
-                {review.text && <p className="text-sm text-gray-600">{review.text}</p>}
+                <span className="text-xs text-gray-400">
+                  {new Date(review.created_at).toLocaleDateString('es-AR')}
+                </span>
               </div>
-            ))}
+              {review.text && <p className="text-sm text-gray-600">{review.text}</p>}
+            </div>
+          ))}
         </div>
       )}
 

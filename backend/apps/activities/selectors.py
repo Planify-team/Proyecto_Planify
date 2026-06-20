@@ -1,13 +1,5 @@
-from django.db.models import Avg, Count, OuterRef, Subquery
 from .models import Activity
-
-
-def _rating_subquery(entity_type: str, field: str):
-    from apps.reviews.models import Review
-    base = Review.objects.filter(entity_type=entity_type, entity_id=OuterRef("id")).values("entity_id")
-    if field == "avg":
-        return base.annotate(v=Avg("stars")).values("v")[:1]
-    return base.annotate(v=Count("id")).values("v")[:1]
+from apps.core.selectors import annotate_ratings
 
 
 def get_active_activities(activity_type=None, indoor=None, outdoor=None, budget=None, category=None, free=None, name=None):
@@ -31,21 +23,13 @@ def get_active_activities(activity_type=None, indoor=None, outdoor=None, budget=
             pass
     if free:
         qs = qs.filter(min_budget=0)
-    qs = qs.annotate(
-        avg_rating=Subquery(_rating_subquery("activity", "avg")),
-        review_count=Subquery(_rating_subquery("activity", "count")),
-    )
-    return qs.order_by("-score_base")
+    return annotate_ratings(qs, "activity").order_by("-score_base")
 
 
 def get_activity_by_id(activity_id):
     try:
         return (
-            Activity.objects.select_related("place")
-            .annotate(
-                avg_rating=Subquery(_rating_subquery("activity", "avg")),
-                review_count=Subquery(_rating_subquery("activity", "count")),
-            )
+            annotate_ratings(Activity.objects.select_related("place"), "activity")
             .get(id=activity_id, is_active=True)
         )
     except Activity.DoesNotExist:

@@ -13,6 +13,13 @@ from apps.core.responses import success_response
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def trending(request):
+    CACHE_KEY = "trending_data"
+    CACHE_TTL = 60  # 1 minute
+
+    cached = cache.get(CACHE_KEY)
+    if cached is not None:
+        return success_response(cached)
+
     from apps.favorites.models import Favorite
     from apps.places.models import Place
     from apps.activities.models import Activity
@@ -45,7 +52,9 @@ def trending(request):
         "id", "title", "category", "start_date", "price", "image_url",
     ))
 
-    return success_response({"places": places, "activities": activities, "events": events})
+    result = {"places": places, "activities": activities, "events": events}
+    cache.set(CACHE_KEY, result, CACHE_TTL)
+    return success_response(result)
 
 
 @api_view(["GET"])
