@@ -37,20 +37,28 @@ def authenticate_user(*, email: str, password: str) -> User:
 def update_user_profile(*, user: User, first_name: str = None, last_name: str = None,
                          birth_date=None, profile_image: str = None,
                          latitude=None, longitude=None) -> User:
+    changed = []
     if first_name is not None:
         user.first_name = first_name
+        changed.append("first_name")
     if last_name is not None:
         user.last_name = last_name
+        changed.append("last_name")
     if birth_date is not None:
         user.birth_date = birth_date
+        changed.append("birth_date")
     if profile_image is not None:
         user.profile_image = profile_image
+        changed.append("profile_image")
     if latitude is not None:
         user.latitude = latitude
+        changed.append("latitude")
     if longitude is not None:
         user.longitude = longitude
+        changed.append("longitude")
 
-    user.save()
+    if changed:
+        user.save(update_fields=[*changed, "updated_at"])
     log_action(user=user, action="update", entity_type="user", entity_id=str(user.id))
     return user
 
