@@ -18,9 +18,15 @@ class PlanItemSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "created_at")
 
     def _resolve_entity(self, obj):
+        key = f"{obj.entity_type}:{obj.entity_id}"
+
+        # Use pre-loaded batch map when available (avoids N+1 on list views)
+        entity_map = self.context.get("entity_map")
+        if entity_map is not None:
+            return entity_map.get(key)
+
         if not hasattr(self, "_entity_cache"):
             self._entity_cache = {}
-        key = f"{obj.entity_type}:{obj.entity_id}"
         if key in self._entity_cache:
             return self._entity_cache[key]
         try:

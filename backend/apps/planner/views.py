@@ -19,6 +19,32 @@ from .services import (
 )
 
 
+def _build_entity_map(plans) -> dict:
+    """Batch-load all entities referenced by plan items in 3 queries (one per type)."""
+    from apps.places.models import Place
+    from apps.activities.models import Activity
+    from apps.events.models import Event
+
+    place_ids, activity_ids, event_ids = set(), set(), set()
+    for plan in plans:
+        for item in plan.items.all():
+            if item.entity_type == "place":
+                place_ids.add(item.entity_id)
+            elif item.entity_type == "activity":
+                activity_ids.add(item.entity_id)
+            elif item.entity_type == "event":
+                event_ids.add(item.entity_id)
+
+    entity_map: dict = {}
+    for p in Place.objects.filter(id__in=place_ids):
+        entity_map[f"place:{p.id}"] = p
+    for a in Activity.objects.filter(id__in=activity_ids):
+        entity_map[f"activity:{a.id}"] = a
+    for e in Event.objects.filter(id__in=event_ids):
+        entity_map[f"event:{e.id}"] = e
+    return entity_map
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def generate_plan_view(request):
@@ -40,8 +66,9 @@ def generate_plan_view(request):
 @permission_classes([IsAuthenticated])
 def plan_list(request):
     if request.method == "GET":
-        plans = get_plans_for_user(request.user)
-        return success_response(PlanSerializer(plans, many=True).data)
+        plans = list(get_plans_for_user(request.user))
+        entity_map = _build_entity_map(plans)
+        return success_response(PlanSerializer(plans, many=True, context={"entity_map": entity_map}).data)
 
     serializer = PlanGenerateSerializer(data=request.data)
     if not serializer.is_valid():
