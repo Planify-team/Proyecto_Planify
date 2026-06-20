@@ -78,47 +78,45 @@ def get_user_activity_stats(user):
     from django.utils import timezone
     from apps.planner.models import Plan, PlanItem, PlanFeedback
 
-    completed_plans = list(Plan.objects.filter(user=user, status="completed"))
-    total_plans = Plan.objects.filter(user=user).count()
-    plans_completed = len(completed_plans)
+    # Single query: fetch all plans with the fields needed for all derived stats
+    all_plan_rows = list(Plan.objects.filter(user=user).values("id", "status", "date", "city"))
+    total_plans = len(all_plan_rows)
+    completed_rows = [p for p in all_plan_rows if p["status"] == "completed"]
+    plans_completed = len(completed_rows)
+    completed_ids = [p["id"] for p in completed_rows]
+    completed_dates = [p["date"] for p in completed_rows]
 
-    completed_ids = [p.id for p in completed_plans]
+    # Cities: derived directly from already-fetched data (no extra query)
+    cities_explored = len({p["city"] for p in completed_rows})
 
-    # Unique places from completed plans
+    # Unique places from completed plan items
     places_visited = PlanItem.objects.filter(
         plan_id__in=completed_ids, entity_type="place"
     ).values("entity_id").distinct().count()
 
-    # Unique cities from completed plans
-    cities_explored = Plan.objects.filter(
-        id__in=completed_ids
-    ).values("city").distinct().count()
-
-    # favorite_category: most common category in entities of completed plan items
-    # Simplified: look at activities since they have categories; fallback to entity_type
+    # Favorite category across entities in completed plan items
     from apps.activities.models import Activity
     from apps.places.models import Place
     from apps.events.models import Event as EventModel
     from collections import Counter
 
     category_counter: Counter = Counter()
-    items = list(PlanItem.objects.filter(plan_id__in=completed_ids))
-    act_ids = [str(i.entity_id) for i in items if i.entity_type == "activity"]
-    place_ids = [str(i.entity_id) for i in items if i.entity_type == "place"]
-    event_ids = [str(i.entity_id) for i in items if i.entity_type == "event"]
+    items = list(PlanItem.objects.filter(plan_id__in=completed_ids).values("entity_id", "entity_type"))
+    act_ids = [str(i["entity_id"]) for i in items if i["entity_type"] == "activity"]
+    place_ids = [str(i["entity_id"]) for i in items if i["entity_type"] == "place"]
+    event_ids = [str(i["entity_id"]) for i in items if i["entity_type"] == "event"]
 
-    for act in Activity.objects.filter(id__in=act_ids):
-        category_counter[act.category] += 1
-    for pl in Place.objects.filter(id__in=place_ids):
-        category_counter[pl.category] += 1
-    for ev in EventModel.objects.filter(id__in=event_ids):
-        category_counter[ev.category] += 1
+    for act in Activity.objects.filter(id__in=act_ids).values("category"):
+        category_counter[act["category"]] += 1
+    for pl in Place.objects.filter(id__in=place_ids).values("category"):
+        category_counter[pl["category"]] += 1
+    for ev in EventModel.objects.filter(id__in=event_ids).values("category"):
+        category_counter[ev["category"]] += 1
 
     favorite_category = category_counter.most_common(1)[0][0] if category_counter else None
 
     # Streak: consecutive weeks with at least 1 completed plan
     import datetime
-    completed_dates = [p.date for p in completed_plans]
 
     def to_iso_week(d):
         iso = d.isocalendar()
