@@ -97,7 +97,7 @@ def _collect_candidates(
     people_count: int,
     is_outdoor_friendly,
     pref_map: dict,
-    interactions: list,
+    interaction_map: dict,
     plan_date,
     phase: int = 1,
 ) -> list[dict]:
@@ -141,7 +141,7 @@ def _collect_candidates(
     for act in activity_qs[:80]:
         pref_s = _pref_boost(act.category, act.activity_type, pref_map)
         pop_s = _popularity_score(act.score_base)
-        inter_s = _interaction_score_v2(act.id, interactions)
+        inter_s = _interaction_score_v2(act.id, interaction_map)
         weather_s = _weather_modifier(act.outdoor, act.indoor, is_outdoor_friendly)
         budget_s = _budget_modifier(budget_per_slot, float(act.min_budget)) if phase == 1 else 0
         people_s = _people_modifier(people_count, act.min_people, act.max_people) if phase == 1 else 0
@@ -177,7 +177,7 @@ def _collect_candidates(
     for place in place_qs.order_by("name")[:80]:
         pref_s = _pref_boost(place.category, "", pref_map)
         pop_s = max(0, 15 - place.price_level * 2)
-        inter_s = _interaction_score_v2(place.id, interactions)
+        inter_s = _interaction_score_v2(place.id, interaction_map)
         outdoor_s = 5 if (place.outdoor_seating and is_outdoor_friendly) else 0
 
         breakdown = {
@@ -213,7 +213,7 @@ def _collect_candidates(
 
     for event in event_qs[:15]:
         pref_s = _pref_boost(event.category, "", pref_map)
-        inter_s = _interaction_score_v2(event.id, interactions)
+        inter_s = _interaction_score_v2(event.id, interaction_map)
         breakdown = {
             "preference": pref_s, "popularity": 20, "interaction": inter_s,
             "weather": 0, "budget": 10 if phase == 1 else 0, "people": 0,
@@ -307,9 +307,11 @@ def generate_plan(user, plan_date: date_type, budget: Decimal, people_count: int
         (p.value.lower() if p.value else p.category.lower()): p.weight
         for p in prefs
     }
-    interactions = list(
+    from apps.recommendations.services import _build_interaction_map
+    raw_interactions = list(
         InteractionHistory.objects.filter(user=user).values_list("entity_id", "action")
     )
+    interaction_map = _build_interaction_map(raw_interactions)
 
     budget_per_slot = float(budget) / 3
 
@@ -326,7 +328,7 @@ def generate_plan(user, plan_date: date_type, budget: Decimal, people_count: int
         already_used = {v["entity_id"] for v in slot_results.values()}
         candidates = _collect_candidates(
             phase_city, bps, ppl, is_outdoor_friendly,
-            pref_map, interactions, plan_date, phase=phase,
+            pref_map, interaction_map, plan_date, phase=phase,
         )
         candidates = [c for c in candidates if c["entity_id"] not in already_used]
         phase_results = _pick_slots(candidates, is_outdoor_friendly, pref_map, phase_label)
@@ -516,9 +518,11 @@ def generate_surprise_plan(user, plan_date=None) -> Plan:
         (p.value.lower() if p.value else p.category.lower()): p.weight
         for p in prefs
     }
-    interactions = list(
+    from apps.recommendations.services import _build_interaction_map
+    raw_interactions = list(
         InteractionHistory.objects.filter(user=user).values_list("entity_id", "action")
     )
+    interaction_map = _build_interaction_map(raw_interactions)
     budget_per_slot = float(budget) / 3
 
     PHASES = [
@@ -534,7 +538,7 @@ def generate_surprise_plan(user, plan_date=None) -> Plan:
         already_used = {v["entity_id"] for v in slot_results.values()}
         candidates = _collect_candidates(
             phase_city, bps, people, is_outdoor_friendly,
-            pref_map, interactions, plan_date, phase=phase,
+            pref_map, interaction_map, plan_date, phase=phase,
         )
         # Exclude entities already picked in earlier phases to avoid duplicates
         candidates = [c for c in candidates if c["entity_id"] not in already_used]
