@@ -53,6 +53,11 @@ export default function HomePage() {
   const [budget, setBudget] = useState('5000')
   const [people, setPeople] = useState('2')
 
+  const budgetDisplay = budget === '' ? '' : Number(budget).toLocaleString('es-AR')
+  const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setBudget(e.target.value.replace(/\D/g, ''))
+  }
+
   const handleGeneratePlan = () => {
     planner.mutate(
       { date: TODAY, budget, people_count: Number(people), city: 'Buenos Aires' },
@@ -103,12 +108,12 @@ export default function HomePage() {
             </label>
             <input
               id="home-budget"
-              type="number"
-              value={budget}
-              onChange={(e) => setBudget(e.target.value)}
+              type="text"
+              inputMode="numeric"
+              value={budgetDisplay}
+              onChange={handleBudgetChange}
               className="bg-white/20 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
-              placeholder="5000"
-              min="0"
+              placeholder="5.000"
             />
           </div>
           <div className="flex flex-col gap-1">
