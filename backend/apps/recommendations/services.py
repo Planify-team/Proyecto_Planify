@@ -431,9 +431,11 @@ def generate_recommendations_for_user(
             score_breakdown=breakdown,
         ))
 
-    Recommendation.objects.filter(user=user).delete()
+    from django.db import transaction
     pending.sort(key=lambda r: r.score, reverse=True)
-    Recommendation.objects.bulk_create(pending[:20])
+    with transaction.atomic():
+        Recommendation.objects.filter(user=user).delete()
+        Recommendation.objects.bulk_create(pending[:20])
 
     from apps.audit.services import log_action
     log_action(
