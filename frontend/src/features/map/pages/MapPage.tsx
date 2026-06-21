@@ -124,14 +124,19 @@ export default function MapPage() {
     if (!q) return
     setCitySearching(true)
     setCityError(null)
-    const result = await geocodingService.geocode(q)
-    setCitySearching(false)
-    if (!result) { setCityError('No se encontró esa ciudad. Probá con otro nombre.'); return }
-    const coords: [number, number] = [result.lat, result.lon]
-    setSearchCenter(coords)
-    setMapCenter(coords)
-    setSearchedCity(result.city || result.display_name.split(',')[0])
-    setCityQuery('')
+    try {
+      const result = await geocodingService.geocode(q)
+      if (!result) { setCityError('No se encontró esa ciudad. Probá con otro nombre.'); return }
+      const coords: [number, number] = [result.lat, result.lon]
+      setSearchCenter(coords)
+      setMapCenter(coords)
+      setSearchedCity(result.city || result.display_name.split(',')[0])
+      setCityQuery('')
+    } catch {
+      setCityError('Error al buscar la ciudad. Intentá de nuevo.')
+    } finally {
+      setCitySearching(false)
+    }
   }
 
   const clearSearch = () => {

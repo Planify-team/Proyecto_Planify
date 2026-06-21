@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Sparkles, Check } from 'lucide-react'
+import { toast } from 'sonner'
 import { useSetPreferences } from '@/hooks/usePreferences'
 import Button from '@/components/ui/Button'
 import { PREFERENCE_OPTIONS } from '@/lib/preferences'
@@ -25,11 +26,15 @@ export default function OnboardingPage() {
       .filter((o) => selected.has(o.value))
       .map((o) => ({ category: o.category, value: o.value, weight: 3 }))
 
-    if (prefs.length > 0) {
-      await setPreferences.mutateAsync(prefs)
-      queryClient.invalidateQueries({ queryKey: ['recommendations'] })
+    try {
+      if (prefs.length > 0) {
+        await setPreferences.mutateAsync(prefs)
+        queryClient.invalidateQueries({ queryKey: ['recommendations'] })
+      }
+      navigate('/recomendaciones')
+    } catch {
+      toast.error('No se pudieron guardar tus preferencias. Intentá de nuevo.')
     }
-    navigate('/recomendaciones')
   }
 
   return (

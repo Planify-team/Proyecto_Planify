@@ -45,6 +45,10 @@ class Plan(models.Model):
     class Meta:
         db_table = "plans"
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "-created_at"]),
+            models.Index(fields=["date", "status"]),
+        ]
 
     def __str__(self):
         return f"{self.title} ({self.date})"

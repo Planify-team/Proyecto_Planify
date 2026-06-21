@@ -36,7 +36,10 @@ class InteractionHistory(models.Model):
     class Meta:
         db_table = "interaction_history"
         ordering = ["-created_at"]
-        indexes = [models.Index(fields=["user", "-created_at"])]
+        indexes = [
+            models.Index(fields=["user", "-created_at"]),
+            models.Index(fields=["entity_type", "entity_id", "created_at"]),
+        ]
 
     def __str__(self):
         return f"{self.user.email} — {self.action} on {self.entity_type}"
