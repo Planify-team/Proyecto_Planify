@@ -59,7 +59,8 @@ def generate_plan_view(request):
         people_count=serializer.validated_data["people_count"],
         city=serializer.validated_data["city"],
     )
-    return created_response(PlanSerializer(plan).data)
+    entity_map = _build_entity_map([plan])
+    return created_response(PlanSerializer(plan, context={"entity_map": entity_map}).data)
 
 
 @api_view(["GET", "POST"])
@@ -109,7 +110,8 @@ def plan_detail(request, plan_id):
             update_fields.append("updated_at")
             plan.save(update_fields=update_fields)
 
-        return success_response(PlanSerializer(plan).data)
+        entity_map = _build_entity_map([plan])
+        return success_response(PlanSerializer(plan, context={"entity_map": entity_map}).data)
 
     delete_plan(plan, request.user)
     return no_content_response()
@@ -252,7 +254,8 @@ def plan_surprise(request):
 
     plan_date = serializer.validated_data.get("date")
     plan = generate_surprise_plan(user=request.user, plan_date=plan_date)
-    return created_response(PlanSerializer(plan).data)
+    entity_map = _build_entity_map([plan])
+    return created_response(PlanSerializer(plan, context={"entity_map": entity_map}).data)
 
 
 @api_view(["POST"])

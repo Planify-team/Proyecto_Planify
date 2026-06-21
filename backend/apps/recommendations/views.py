@@ -38,10 +38,10 @@ def recommendation_list(request):
     )
 
     for rec in recommendations[:5]:
-        entity_id = str(rec.activity_id or rec.event_id or rec.place_id)
-        if entity_id and entity_id != "None":
+        raw_id = rec.activity_id or rec.event_id or rec.place_id
+        if raw_id:
             entity_type = "activity" if rec.activity_id else ("event" if rec.event_id else "place")
-            log_interaction(user=request.user, action="view", entity_type=entity_type, entity_id=entity_id)
+            log_interaction(user=request.user, action="view", entity_type=entity_type, entity_id=str(raw_id))
 
     return success_response(RecommendationSerializer(recommendations, many=True).data)
 
