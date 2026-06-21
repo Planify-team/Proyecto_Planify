@@ -193,11 +193,11 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
       aria-label={name}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleClick()}
     >
-      {/* Thumbnail — available for events and places */}
-      {(rec.event_detail?.image_url || rec.place_detail?.image_url) && (
+      {/* Thumbnail — available for events, places and activities */}
+      {(rec.event_detail?.image_url || rec.place_detail?.image_url || rec.activity_detail?.image_url) && (
         <div className="relative -mx-4 -mt-4 mb-1 rounded-t-xl overflow-hidden h-28">
           <img
-            src={rec.event_detail?.image_url ?? rec.place_detail?.image_url ?? ''}
+            src={rec.event_detail?.image_url ?? rec.place_detail?.image_url ?? rec.activity_detail?.image_url ?? ''}
             alt={name}
             className="w-full h-full object-cover"
             loading="lazy"

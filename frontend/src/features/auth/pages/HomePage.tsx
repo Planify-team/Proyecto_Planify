@@ -9,7 +9,8 @@ import WeatherForecastWidget from '@/components/ui/WeatherForecastWidget'
 
 const BA = { lat: -34.6037, lon: -58.3816 }
 
-const TODAY = new Date().toISOString().split('T')[0]
+const _now = new Date()
+const TODAY = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`
 const TODAY_LABEL = new Date().toLocaleDateString('es-AR', {
   weekday: 'long', day: 'numeric', month: 'long',
 })

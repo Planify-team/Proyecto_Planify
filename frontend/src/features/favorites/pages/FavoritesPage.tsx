@@ -36,6 +36,21 @@ export default function FavoritesPage() {
   const remove = useRemoveFavorite()
   const [activeTab, setActiveTab] = useState<FilterTab>('all')
 
+  const counts = useMemo(() => {
+    const c = { all: favorites.length, place: 0, activity: 0, event: 0 }
+    for (const f of favorites) {
+      if (f.item_type === 'place') c.place++
+      else if (f.item_type === 'activity') c.activity++
+      else if (f.item_type === 'event') c.event++
+    }
+    return c
+  }, [favorites])
+
+  const visible = useMemo(
+    () => activeTab === 'all' ? favorites : favorites.filter((f) => f.item_type === activeTab),
+    [favorites, activeTab],
+  )
+
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6 animate-pulse">
@@ -54,21 +69,6 @@ export default function FavoritesPage() {
       </div>
     )
   }
-
-  const counts = useMemo(() => {
-    const c = { all: favorites.length, place: 0, activity: 0, event: 0 }
-    for (const f of favorites) {
-      if (f.item_type === 'place') c.place++
-      else if (f.item_type === 'activity') c.activity++
-      else if (f.item_type === 'event') c.event++
-    }
-    return c
-  }, [favorites])
-
-  const visible = useMemo(
-    () => activeTab === 'all' ? favorites : favorites.filter((f) => f.item_type === activeTab),
-    [favorites, activeTab],
-  )
 
   return (
     <div className="flex flex-col gap-6">

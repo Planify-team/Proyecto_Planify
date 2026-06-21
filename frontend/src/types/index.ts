@@ -211,6 +211,7 @@ export interface Recommendation {
     address: string
     city: string
     is_free: boolean | null
+    image_url: string
   } | null
   event_detail: {
     id: string

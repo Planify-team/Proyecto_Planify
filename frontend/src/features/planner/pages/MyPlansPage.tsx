@@ -156,7 +156,7 @@ export default function MyPlansPage() {
     for (const p of allPlans) {
       (new Date(p.date + 'T23:59:59') < now ? past : up).push(p)
     }
-    up.sort((a, b) => (a.date < b.date ? 1 : -1))
+    up.sort((a, b) => (a.date < b.date ? -1 : 1))
     past.sort((a, b) => (a.date < b.date ? 1 : -1))
     return { upcoming: up, past }
   }, [allPlans])

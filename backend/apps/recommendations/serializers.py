@@ -42,6 +42,7 @@ class RecommendationSerializer(serializers.ModelSerializer):
             "address": a.address or "",
             "city": a.city or "",
             "is_free": a.is_free,
+            "image_url": a.image_url or "",
         }
 
     def get_event_detail(self, obj):

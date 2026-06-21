@@ -128,6 +128,7 @@ export default function ExplorePage() {
     navigator.geolocation.getCurrentPosition(
       (pos) => { setNearbyCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude }); setGeoLoading(false) },
       () => { setGeoError('No pudimos obtener tu ubicación. Verificá los permisos del navegador.'); setGeoLoading(false) },
+      { timeout: 8000 },
     )
   }, [])
 
