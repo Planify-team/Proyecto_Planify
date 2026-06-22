@@ -272,24 +272,37 @@ export default function MapPage() {
             {visiblePlaces.map((place) => {
               const isInternal = place.source !== 'osm'
               return (
-                <div
-                  key={place.id}
-                  className={`flex items-center gap-3 bg-white rounded-xl border border-gray-200 p-3 shadow-glass-sm hover:shadow-neon-sm hover:border-primary-500/30 transition-all ${isInternal ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40' : ''}`}
-                  onClick={() => isInternal && navigate(`/places/${place.id}`)}
-                  role={isInternal ? 'button' : undefined}
-                  tabIndex={isInternal ? 0 : undefined}
-                  aria-label={isInternal ? place.name : undefined}
-                  onKeyDown={isInternal ? (e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/places/${place.id}`) : undefined}
-                >
-                  <div className="bg-primary-500/10 rounded-lg p-2 flex-shrink-0" aria-hidden="true">
-                    <MapPin className="h-4 w-4 text-primary-600" />
+                {isInternal ? (
+                  <button
+                    key={place.id}
+                    type="button"
+                    onClick={() => navigate(`/places/${place.id}`)}
+                    aria-label={place.name}
+                    className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 p-3 shadow-glass-sm hover:shadow-neon-sm hover:border-primary-500/30 transition-all text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
+                  >
+                    <div className="bg-primary-500/10 rounded-lg p-2 flex-shrink-0" aria-hidden="true">
+                      <MapPin className="h-4 w-4 text-primary-600" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 text-sm truncate">{place.name}</p>
+                      <p className="text-xs text-gray-500">{place.city || '—'} · {place.category}</p>
+                    </div>
+                  </button>
+                ) : (
+                  <div
+                    key={place.id}
+                    className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 p-3 shadow-glass-sm"
+                  >
+                    <div className="bg-primary-500/10 rounded-lg p-2 flex-shrink-0" aria-hidden="true">
+                      <MapPin className="h-4 w-4 text-primary-600" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 text-sm truncate">{place.name}</p>
+                      <p className="text-xs text-gray-500">{place.city || '—'} · {place.category}</p>
+                    </div>
+                    <span className="text-xs text-gray-400 flex-shrink-0">OSM</span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-900 text-sm truncate">{place.name}</p>
-                    <p className="text-xs text-gray-500">{place.city || '—'} · {place.category}</p>
-                  </div>
-                  {place.source === 'osm' && <span className="text-xs text-gray-400 flex-shrink-0">OSM</span>}
-                </div>
+                )}
               )
             })}
           </div>

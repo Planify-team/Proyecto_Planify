@@ -88,8 +88,9 @@ export default function ProfilePage() {
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-gray-500 font-medium block mb-1">Nombre</label>
+                <label htmlFor="profile-first-name" className="text-xs text-gray-500 font-medium block mb-1">Nombre</label>
                 <input
+                  id="profile-first-name"
                   value={nameForm.first_name}
                   onChange={(e) => setNameForm((f) => ({ ...f, first_name: e.target.value }))}
                   className="w-full text-sm border border-gray-200 bg-gray-100 text-gray-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
@@ -97,8 +98,9 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-500 font-medium block mb-1">Apellido</label>
+                <label htmlFor="profile-last-name" className="text-xs text-gray-500 font-medium block mb-1">Apellido</label>
                 <input
+                  id="profile-last-name"
                   value={nameForm.last_name}
                   onChange={(e) => setNameForm((f) => ({ ...f, last_name: e.target.value }))}
                   className="w-full text-sm border border-gray-200 bg-gray-100 text-gray-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
