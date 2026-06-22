@@ -24,11 +24,11 @@ def register_user(*, email: str, password: str, first_name: str, last_name: str,
 def authenticate_user(*, email: str, password: str) -> User:
     user = authenticate(username=email, password=password)
     if not user:
-        raise AuthenticationFailed("Invalid credentials.")
+        raise AuthenticationFailed("Correo o contraseña incorrectos.")
     if user.status == UserStatus.SUSPENDED:
-        raise PermissionDenied("Your account has been suspended.")
+        raise PermissionDenied("Tu cuenta ha sido suspendida. Contactá soporte.")
     if user.status == UserStatus.DELETED:
-        raise AuthenticationFailed("Account not found.")
+        raise AuthenticationFailed("Correo o contraseña incorrectos.")
 
     log_action(user=user, action="login", entity_type="user", entity_id=str(user.id))
     return user
@@ -73,7 +73,7 @@ def change_password(*, user: User, old_password: str, new_password: str) -> None
 
 def delete_user(*, requesting_user: User, target_user: User) -> None:
     if requesting_user != target_user and requesting_user.role != "admin":
-        raise PermissionDenied("You cannot delete another user's account.")
+        raise PermissionDenied("No podés eliminar la cuenta de otro usuario.")
     target_user.soft_delete()
     log_action(
         user=requesting_user,

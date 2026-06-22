@@ -20,7 +20,7 @@ class Favorite(models.Model):
         refs = [self.event_id, self.place_id, self.activity_id]
         filled = [r for r in refs if r is not None]
         if len(filled) != 1:
-            raise ValidationError("A favorite must reference exactly one of: event, place, or activity.")
+            raise ValidationError("Un favorito debe referenciar exactamente uno de: evento, lugar o actividad.")
 
     def save(self, *args, **kwargs):
         self.clean()

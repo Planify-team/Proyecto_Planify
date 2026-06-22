@@ -22,9 +22,9 @@ def create_event(*, user, **kwargs) -> Event:
 
 def publish_event(*, user, event: Event) -> Event:
     if not event.can_publish():
-        raise ValidationError({"status": f"Cannot publish event in status '{event.status}'."})
+        raise ValidationError({"status": f"No se puede publicar un evento en estado '{event.status}'."})
     if not (user.role in ("admin", "moderator") or event.organizer == user):
-        raise PermissionDenied("You do not have permission to publish this event.")
+        raise PermissionDenied("No tenés permiso para publicar este evento.")
     event.status = EventStatus.PUBLISHED
     event.save(update_fields=["status", "updated_at"])
     log_action(user=user, action="publish", entity_type="event", entity_id=str(event.id))
@@ -33,9 +33,9 @@ def publish_event(*, user, event: Event) -> Event:
 
 def cancel_event(*, user, event: Event, reason: str = "") -> Event:
     if not event.can_cancel():
-        raise ValidationError({"status": f"Cannot cancel event in status '{event.status}'."})
+        raise ValidationError({"status": f"No se puede cancelar un evento en estado '{event.status}'."})
     if not (user.role in ("admin", "moderator") or event.organizer == user):
-        raise PermissionDenied("You do not have permission to cancel this event.")
+        raise PermissionDenied("No tenés permiso para cancelar este evento.")
     event.status = EventStatus.CANCELLED
     event.cancellation_reason = reason
     event.save(update_fields=["status", "cancellation_reason", "updated_at"])

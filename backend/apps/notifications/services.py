@@ -35,7 +35,7 @@ def create_reminder(*, user, event, reminder_date) -> Reminder:
 def delete_reminder(*, user, reminder: Reminder) -> None:
     if reminder.user != user:
         from rest_framework.exceptions import PermissionDenied
-        raise PermissionDenied("You cannot delete another user's reminder.")
+        raise PermissionDenied("No podés eliminar el recordatorio de otro usuario.")
     reminder.delete()
 
 

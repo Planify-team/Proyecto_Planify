@@ -13,7 +13,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if attrs["password"] != attrs.pop("password_confirm"):
-            raise serializers.ValidationError({"password_confirm": "Passwords do not match."})
+            raise serializers.ValidationError({"password_confirm": "Las contraseñas no coinciden."})
         return attrs
 
     def create(self, validated_data):
@@ -62,5 +62,5 @@ class ChangePasswordSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if attrs["new_password"] != attrs["new_password_confirm"]:
-            raise serializers.ValidationError({"new_password_confirm": "Passwords do not match."})
+            raise serializers.ValidationError({"new_password_confirm": "Las contraseñas no coinciden."})
         return attrs
