@@ -46,6 +46,9 @@ def recommendation_list(request):
     return success_response(RecommendationSerializer(recommendations, many=True).data)
 
 
+VALID_ENTITY_TYPES = {"activity", "event", "place"}
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def recommendation_click(request):
@@ -54,6 +57,11 @@ def recommendation_click(request):
     if not entity_type or not entity_id:
         return error_response(
             "MISSING_PARAMS", "Se requieren entity_type y entity_id.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    if entity_type not in VALID_ENTITY_TYPES:
+        return error_response(
+            "VALIDATION_ERROR", "entity_type inválido.",
             status_code=status.HTTP_400_BAD_REQUEST,
         )
     log_interaction(
