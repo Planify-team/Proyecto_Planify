@@ -61,8 +61,8 @@ export default function LoginPage() {
         />
 
         {login.isError && (
-          <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 rounded-xl p-3">
-            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+          <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 rounded-xl p-3" role="alert">
+            <AlertTriangle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
             {getApiErrorMessage(login.error, 'Error al ingresar. Intentá de nuevo.')}
           </div>
         )}
