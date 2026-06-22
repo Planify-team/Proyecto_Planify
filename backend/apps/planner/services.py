@@ -174,9 +174,11 @@ def _collect_candidates(
         else:
             place_qs = place_qs.filter(Q(city__icontains=city) | Q(city=""))
 
-    for place in place_qs.order_by("name")[:80]:
+    for place in place_qs.order_by("-is_curated", "name")[:80]:
         pref_s = _pref_boost(place.category, "", pref_map)
         pop_s = max(0, 15 - place.price_level * 2)
+        if place.is_curated:
+            pop_s += 20  # curated places rise to the top
         inter_s = _interaction_score_v2(place.id, interaction_map)
         outdoor_s = 5 if (place.outdoor_seating and is_outdoor_friendly) else 0
 

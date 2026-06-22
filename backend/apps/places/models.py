@@ -32,13 +32,15 @@ class Place(SoftDeleteModel):
     outdoor_seating = models.BooleanField(null=True, blank=True)
     wheelchair = models.CharField(max_length=20, blank=True, default="")
     internet_access = models.BooleanField(null=True, blank=True)
+    is_curated = models.BooleanField(default=False, db_index=True)
 
     class Meta:
         db_table = "places"
-        ordering = ["name"]
+        ordering = ["-is_curated", "name"]
         indexes = [
             models.Index(fields=["city", "category"]),
             models.Index(fields=["is_active"]),
+            models.Index(fields=["is_curated", "city"]),
         ]
 
     def __str__(self):
