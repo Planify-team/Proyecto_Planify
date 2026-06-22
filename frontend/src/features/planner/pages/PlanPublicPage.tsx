@@ -43,7 +43,7 @@ export default function PlanPublicPage() {
           onClick={() => navigate('/register')}
           className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 shadow-neon-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
         >
-          <Sparkles className="h-4 w-4" />
+          <Sparkles className="h-4 w-4" aria-hidden="true" />
           Crear mi propio plan
         </button>
       </div>
@@ -55,7 +55,7 @@ export default function PlanPublicPage() {
       <title>{plan.title} | Planify</title>
       <header className="glass-nav border-b border-gray-200/20 px-4 py-4">
         <div className="max-w-2xl mx-auto flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-primary-600" />
+          <MapPin className="h-5 w-5 text-primary-600" aria-hidden="true" />
           <span className="font-bold text-primary-600 text-lg">Planify</span>
         </div>
       </header>

@@ -152,7 +152,7 @@ export default function BottomNav() {
           <button
             onClick={() => setDrawerOpen(!drawerOpen)}
             aria-expanded={drawerOpen}
-            aria-label="Más opciones de navegación"
+            aria-label={unreadCount > 0 && !drawerOpen ? `Más opciones de navegación (${unreadCount} notificaciones sin leer)` : 'Más opciones de navegación'}
             className={`relative flex flex-col items-center gap-0.5 flex-1 py-2 px-1 transition-colors touch-manipulation ${
               drawerOpen ? 'text-primary-500' : 'text-gray-500'
             }`}

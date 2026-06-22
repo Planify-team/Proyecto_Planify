@@ -22,7 +22,7 @@ function PromotionCard({ promo }: { promo: Promotion }) {
     >
       <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-3 flex items-center justify-between">
         <span className="text-white font-bold text-xl flex items-center gap-1">
-          <Percent className="h-5 w-5" />
+          <Percent className="h-5 w-5" aria-hidden="true" />
           {promo.discount_percentage}% OFF
         </span>
         {expiringSoon ? (
@@ -86,7 +86,7 @@ export default function PromotionsPage() {
       <title>Promociones | Planify</title>
       <div>
         <h1 className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-          <Tag className="h-6 w-6 text-primary-600" />
+          <Tag className="h-6 w-6 text-primary-600" aria-hidden="true" />
           Promociones
         </h1>
         <p className="text-gray-500 text-sm">Descuentos y ofertas activas en lugares cercanos.</p>

@@ -35,8 +35,9 @@ export function TrendingPlanCard({ plan, onUseAsBase }: Props) {
         </div>
 
         {plan.view_count > 0 && (
-          <span className="flex items-center gap-0.5 text-xs text-gray-400 flex-shrink-0" title="Vistas">
+          <span className="flex items-center gap-0.5 text-xs text-gray-400 flex-shrink-0">
             <Eye className="h-3 w-3" aria-hidden="true" />
+            <span className="sr-only">Vistas: </span>
             {plan.view_count}
           </span>
         )}

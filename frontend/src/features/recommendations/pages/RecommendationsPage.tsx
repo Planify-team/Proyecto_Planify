@@ -252,7 +252,7 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
               })}
             </span>
             <span className="flex items-center gap-1">
-              <DollarSign className="h-3.5 w-3.5 flex-shrink-0" />
+              <DollarSign className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
               {formatARS(rec.event_detail.price)}
             </span>
           </>

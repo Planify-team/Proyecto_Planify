@@ -144,7 +144,7 @@ export default function Navbar() {
                     ? 'text-primary-600 bg-primary-500/10 shadow-neon-sm'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-white/5'
                 }`}
-                aria-label="Notificaciones"
+                aria-label={unreadCount > 0 ? `Notificaciones (${unreadCount} sin leer)` : 'Notificaciones'}
               >
                 <Bell className="h-5 w-5" />
                 {unreadCount > 0 && (

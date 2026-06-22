@@ -77,7 +77,7 @@ def search(request):
     from apps.activities.models import Activity
     from apps.events.models import Event, EventStatus
 
-    q = request.query_params.get("q", "").strip()
+    q = request.query_params.get("q", "").strip()[:200]
     if not q:
         return success_response({"places": [], "activities": [], "events": []})
 
