@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { authService } from '@/services/authService'
 import { useAuthStore } from '@/store/authStore'
 import apiClient from '@/lib/axios'
@@ -8,12 +8,14 @@ import type { User } from '@/types'
 export function useLogin() {
   const { setAuth } = useAuthStore()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   return useMutation({
     mutationFn: authService.login,
     onSuccess: (data) => {
       setAuth(data.user, data.access, data.refresh)
-      navigate('/')
+      const next = searchParams.get('next')
+      navigate(next && next.startsWith('/') ? next : '/')
     },
   })
 }
@@ -21,13 +23,27 @@ export function useLogin() {
 export function useRegister() {
   const { setAuth } = useAuthStore()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   return useMutation({
     mutationFn: authService.register,
     onSuccess: (data) => {
       setAuth(data.user, data.access, data.refresh)
-      navigate('/')
+      const next = searchParams.get('next')
+      navigate(next && next.startsWith('/') ? next : '/')
     },
+  })
+}
+
+export function usePasswordResetRequest() {
+  return useMutation({
+    mutationFn: (email: string) => authService.passwordResetRequest(email),
+  })
+}
+
+export function usePasswordResetConfirm() {
+  return useMutation({
+    mutationFn: authService.passwordResetConfirm,
   })
 }
 

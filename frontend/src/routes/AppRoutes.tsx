@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import MainLayout from '@/components/layout/MainLayout'
 import AuthLayout from '@/components/layout/AuthLayout'
@@ -29,7 +29,9 @@ const PlanDetailPage       = lazy(() => import('@/features/planner/pages/PlanDet
 const PlanPublicPage       = lazy(() => import('@/features/planner/pages/PlanPublicPage'))
 const BusinessDashboard    = lazy(() => import('@/features/dashboard/pages/BusinessDashboardPage'))
 const OrganizerDashboard   = lazy(() => import('@/features/dashboard/pages/OrganizerDashboardPage'))
-const NotFoundPage         = lazy(() => import('@/components/common/NotFoundPage'))
+const NotFoundPage           = lazy(() => import('@/components/common/NotFoundPage'))
+const ForgotPasswordPage     = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'))
+const ResetPasswordPage      = lazy(() => import('@/features/auth/pages/ResetPasswordPage'))
 
 function PageLoader() {
   return (
@@ -44,7 +46,8 @@ function PageLoader() {
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
-  if (!isAuthenticated) return <Navigate to="/login" replace />
+  const location = useLocation()
+  if (!isAuthenticated) return <Navigate to={`/login?next=${encodeURIComponent(location.pathname)}`} replace />
   return <>{children}</>
 }
 
@@ -62,6 +65,8 @@ export default function AppRoutes() {
           <Route element={<AuthLayout />}>
             <Route path="/login"    element={<GuestRoute><LoginPage /></GuestRoute>} />
             <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+            <Route path="/olvide-contrasena" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
+            <Route path="/restablecer-contrasena/:uid/:token" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
           </Route>
 
           <Route element={<MainLayout />}>
