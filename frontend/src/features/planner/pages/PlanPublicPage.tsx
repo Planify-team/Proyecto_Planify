@@ -64,7 +64,7 @@ export default function PlanPublicPage() {
         <h1 className="text-xl font-bold text-gray-900 mb-1">{plan.title}</h1>
         <p className="text-sm text-gray-500 mb-6">
           {plan.city} · {plan.people_count} persona{plan.people_count !== 1 ? 's' : ''} ·{' '}
-          {new Date(plan.date + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+          {new Date(plan.date + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, c => c.toUpperCase())}
         </p>
 
         {plan.items.length === 0 ? (

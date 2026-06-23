@@ -69,8 +69,8 @@ export default function ActivityDetail() {
         Volver
       </button>
 
-      {/* Hero image */}
-      {activity.image_url && (
+      {/* Hero image or gradient placeholder */}
+      {activity.image_url ? (
         <div className="relative rounded-xl overflow-hidden">
           <img
             src={activity.image_url}
@@ -80,6 +80,13 @@ export default function ActivityDetail() {
             decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" aria-hidden="true" />
+        </div>
+      ) : (
+        <div className="relative rounded-xl overflow-hidden h-36 bg-gradient-to-br from-primary-900 via-violet-900 to-indigo-900 flex items-center justify-center ring-1 ring-primary-500/20">
+          <div className="text-center">
+            <Zap className="h-12 w-12 text-primary-400/50 mx-auto mb-2" aria-hidden="true" />
+            <p className="text-sm font-medium text-primary-300/60">{ACTIVITY_TYPE_LABELS[activity.activity_type] ?? activity.activity_type}</p>
+          </div>
         </div>
       )}
 

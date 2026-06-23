@@ -78,8 +78,15 @@ export default function PlaceDetail() {
         Volver
       </button>
 
-      {place.image_url && (
+      {place.image_url ? (
         <img src={place.image_url} alt={place.name} className="w-full h-56 object-cover rounded-xl" decoding="async" />
+      ) : (
+        <div className="relative rounded-xl overflow-hidden h-36 bg-gradient-to-br from-blue-900 via-primary-900 to-violet-900 flex items-center justify-center ring-1 ring-blue-500/20">
+          <div className="text-center">
+            <MapPin className="h-12 w-12 text-blue-400/50 mx-auto mb-2" aria-hidden="true" />
+            <p className="text-sm font-medium text-blue-300/60">{place.category}</p>
+          </div>
+        </div>
       )}
 
       <div className="flex items-start justify-between gap-4">

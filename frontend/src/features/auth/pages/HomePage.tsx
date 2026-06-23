@@ -13,7 +13,7 @@ const BA = { lat: -34.6037, lon: -58.3816 }
 const TODAY = localDateString()
 const TODAY_LABEL = new Date().toLocaleDateString('es-AR', {
   weekday: 'long', day: 'numeric', month: 'long',
-})
+}).replace(/^./, c => c.toUpperCase())
 
 const QUICK_ACTIONS = [
   { to: '/explorar',        icon: <Compass className="h-5 w-5 text-electric-cyan" />,  bg: 'bg-cyan-500/10',   label: 'Explorar' },
@@ -80,7 +80,7 @@ export default function HomePage() {
           <h1 className="text-2xl font-bold text-gray-900">
             {getGreeting(user?.first_name ?? '')} 👋
           </h1>
-          <p className="text-gray-500 text-sm capitalize mt-0.5">{TODAY_LABEL} · Buenos Aires</p>
+          <p className="text-gray-500 text-sm mt-0.5">{TODAY_LABEL} · Buenos Aires</p>
         </div>
         {weatherLoading ? (
           <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-4 py-3 animate-pulse w-40 h-10" />

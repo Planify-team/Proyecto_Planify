@@ -14,7 +14,7 @@ function formatDate(iso: string) {
   return new Intl.DateTimeFormat('es-AR', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
-  }).format(new Date(iso))
+  }).format(new Date(iso)).replace(/^./, c => c.toUpperCase())
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -94,10 +94,17 @@ export default function EventDetail() {
         Volver
       </button>
 
-      {event.image_url && (
+      {event.image_url ? (
         <div className="relative rounded-xl overflow-hidden">
           <img src={event.image_url} alt={event.title} className="w-full h-56 object-cover" loading="lazy" decoding="async" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" aria-hidden="true" />
+        </div>
+      ) : (
+        <div className="relative rounded-xl overflow-hidden h-36 bg-gradient-to-br from-green-900 via-teal-900 to-primary-900 flex items-center justify-center ring-1 ring-green-500/20">
+          <div className="text-center">
+            <Calendar className="h-12 w-12 text-green-400/50 mx-auto mb-2" aria-hidden="true" />
+            <p className="text-sm font-medium text-green-300/60 capitalize">{event.category}</p>
+          </div>
         </div>
       )}
 
@@ -108,7 +115,7 @@ export default function EventDetail() {
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusInfo.color}`}>
               {statusInfo.label}
             </span>
-            <span className="text-xs bg-primary-500/15 text-primary-600 px-2 py-0.5 rounded-full font-medium">
+            <span className="text-xs bg-primary-500/15 text-primary-600 px-2 py-0.5 rounded-full font-medium capitalize">
               {event.category}
             </span>
           </div>
