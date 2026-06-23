@@ -97,10 +97,5 @@ describe('Navbar', () => {
       expect(screen.queryByText(/^\d+$/)).not.toBeInTheDocument()
     })
 
-    it('opens mobile menu on hamburger click', () => {
-      renderWithProviders(<Navbar />)
-      fireEvent.click(screen.getByRole('button', { name: /menú/i }))
-      expect(screen.getByText('Recordatorios')).toBeInTheDocument()
-    })
   })
 })

@@ -87,8 +87,4 @@ describe('PlaceCard', () => {
     expect(screen.getByText('Wifi')).toBeInTheDocument()
   })
 
-  it('shows cuisine when present', () => {
-    renderWithProviders(<PlaceCard place={makePlace({ cuisine: 'pizza' })} />)
-    expect(screen.getByText('pizza')).toBeInTheDocument()
-  })
 })

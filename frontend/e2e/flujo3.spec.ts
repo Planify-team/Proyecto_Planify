@@ -14,7 +14,7 @@ test.describe('Flujo 3 — Recordatorios', () => {
     await page.goto('/explorar')
     await expect(page.getByRole('heading', { name: /explorar/i })).toBeVisible()
 
-    await page.getByRole('button', { name: /eventos/i }).click()
+    await page.getByRole('tab', { name: /eventos/i }).click()
 
     // Esperar que carguen los eventos publicados
     const eventCard = page.locator('[class*="cursor-pointer"]').first()

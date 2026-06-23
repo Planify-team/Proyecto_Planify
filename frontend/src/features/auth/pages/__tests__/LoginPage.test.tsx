@@ -65,7 +65,7 @@ describe('LoginPage', () => {
     vi.mocked(useLogin).mockReturnValue(
       makeMutationResult({
         isError: true,
-        error: { response: { data: { error: { message: 'Credenciales inválidas' } } } } as any,
+        error: { response: { data: { success: false, error: { message: 'Credenciales inválidas' } } } } as any,
       }),
     )
     renderWithProviders(<LoginPage />)

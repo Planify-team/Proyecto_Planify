@@ -1,13 +1,29 @@
 import { test, expect } from '@playwright/test'
+import { execSync } from 'child_process'
 import { login } from './helpers/auth'
 
 /**
  * Flujo 4: Login → Notificaciones → Marcar como leída
  *
  * Requiere que exista al menos una notificación no leída para el usuario admin.
- * El seeder crea una notificación de prueba antes de los tests.
+ * El beforeEach crea una notificación de prueba antes de los tests.
  */
 test.describe('Flujo 4 — Notificaciones', () => {
+  test.beforeEach(async () => {
+    execSync(
+      `docker exec planify_backend python manage.py shell -c "` +
+      `from apps.notifications.models import Notification, NotificationType, NotificationStatus; ` +
+      `from django.contrib.auth import get_user_model; ` +
+      `U = get_user_model(); ` +
+      `admin = U.objects.get(email='admin@planify.com'); ` +
+      `n, _ = Notification.objects.get_or_create(user=admin, title='Notificacion de prueba E2E', ` +
+      `defaults={'message':'Test E2E','notification_type':NotificationType.SYSTEM,'status':NotificationStatus.SENT,'read':False}); ` +
+      `n.read = False; n.save()` +
+      `"`,
+      { stdio: 'ignore' }
+    )
+  })
+
   test('marcar notificación como leída', async ({ page }) => {
     // ── Paso 1: Login ─────────────────────────────────────────────────────────
     await login(page)

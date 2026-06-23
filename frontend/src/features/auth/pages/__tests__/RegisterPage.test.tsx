@@ -101,7 +101,7 @@ describe('RegisterPage', () => {
     vi.mocked(useRegister).mockReturnValue(
       makeMutationResult({
         isError: true,
-        error: { response: { data: { error: { message: 'El correo ya está registrado' } } } } as any,
+        error: { response: { data: { success: false, error: { message: 'El correo ya está registrado' } } } } as any,
       }),
     )
     renderWithProviders(<RegisterPage />)

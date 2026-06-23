@@ -14,7 +14,7 @@ test.describe('Flujo 2 — Favoritos', () => {
     await page.goto('/explorar')
     await expect(page.getByRole('heading', { name: /explorar/i })).toBeVisible()
 
-    await page.getByRole('button', { name: /actividades/i }).click()
+    await page.getByRole('tab', { name: /actividades/i }).click()
 
     // Esperar que carguen las actividades
     const activityCard = page.locator('[class*="cursor-pointer"]').first()
