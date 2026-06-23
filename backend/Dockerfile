@@ -17,15 +17,10 @@ COPY . .
 
 RUN addgroup --system django && adduser --system --ingroup django django
 
-RUN mkdir -p /app/staticfiles /app/mediafiles && chown -R django:django /app/staticfiles /app/mediafiles
-
-RUN DJANGO_SETTINGS_MODULE=config.settings.production \
-    SECRET_KEY=build-only-not-real \
-    DATABASE_URL="" \
-    python manage.py collectstatic --noinput
+RUN mkdir -p /app/staticfiles /app/mediafiles && chown -R django:django /app/staticfiles /app/mediafiles /app
 
 USER django
 
 EXPOSE 8000
 
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "60"]
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "1", "--timeout", "120"]
