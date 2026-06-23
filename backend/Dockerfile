@@ -16,6 +16,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 RUN addgroup --system django && adduser --system --ingroup django django
+
+RUN mkdir -p /app/staticfiles /app/mediafiles && chown -R django:django /app/staticfiles /app/mediafiles
+
 USER django
 
 EXPOSE 8000

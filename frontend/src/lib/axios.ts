@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useAuthStore } from '@/store/authStore'
 
 const apiClient = axios.create({
-  baseURL: '/api/v1',
+  baseURL: import.meta.env.VITE_API_URL ?? '/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -61,7 +61,7 @@ apiClient.interceptors.response.use(
     }
 
     try {
-      const response = await axios.post('/api/v1/auth/refresh/', { refresh: refreshToken })
+      const response = await axios.post(`${import.meta.env.VITE_API_URL ?? '/api/v1'}/auth/refresh/`, { refresh: refreshToken })
       // simplejwt returns a NEW refresh token when ROTATE_REFRESH_TOKENS = True
       const { access, refresh: newRefresh } = response.data
       useAuthStore.getState().setTokens(access, newRefresh ?? refreshToken)
