@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MapPin, DollarSign, Wifi, TreePine, Ticket } from 'lucide-react'
 import type { Place } from '@/types'
 import FavoriteButton from './FavoriteButton'
 import { RatingBadge } from './ReviewSection'
+import { getCategoryImageUrl } from '@/lib/categoryImages'
 
 interface PlaceCardProps {
   place: Place
@@ -12,6 +14,7 @@ const priceLabels = ['', 'Económico', 'Moderado', 'Caro', 'Muy caro']
 
 export default function PlaceCard({ place }: PlaceCardProps) {
   const navigate = useNavigate()
+  const [imgSrc, setImgSrc] = useState(place.image_url || getCategoryImageUrl(place.category))
 
   return (
     <div
@@ -23,13 +26,13 @@ export default function PlaceCard({ place }: PlaceCardProps) {
       aria-label={place.name}
     >
       <div className="overflow-hidden h-28 sm:h-40">
-        {place.image_url ? (
-          <img src={place.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-        ) : (
-          <div className="w-full h-full bg-primary-500/10 flex items-center justify-center" aria-hidden="true">
-            <MapPin className="h-8 w-8 sm:h-10 sm:w-10 text-primary-300" />
-          </div>
-        )}
+        <img
+          src={imgSrc}
+          alt=""
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+          onError={() => setImgSrc(getCategoryImageUrl(place.category))}
+        />
       </div>
 
       <div className="p-3 sm:p-4">

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, Users, DollarSign, ArrowRight, Compass, Heart, Cloud, CalendarDays, FolderOpen, ChevronRight, Globe, Lock, MapPin, Zap, Calendar } from 'lucide-react'
+import { Sparkles, Users, DollarSign, ArrowRight, Compass, Heart, Cloud, CalendarDays, FolderOpen, ChevronRight, Globe, Lock, MapPin } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useWeather, useForecast } from '@/hooks/useWeather'
 import { useMyPlans } from '@/hooks/usePlanner'
@@ -8,6 +8,7 @@ import { useRecommendations } from '@/hooks/useRecommendations'
 import WeatherWidget from '@/components/ui/WeatherWidget'
 import WeatherForecastWidget from '@/components/ui/WeatherForecastWidget'
 import { localDateString } from '@/lib/format'
+import { getCategoryImageUrl } from '@/lib/categoryImages'
 
 const BA = { lat: -34.6037, lon: -58.3816 }
 
@@ -192,19 +193,19 @@ export default function HomePage() {
 
           return (
             <div className="mt-4 bg-white/10 rounded-xl ring-1 ring-white/20 overflow-hidden">
-              {image ? (
-                <img src={image} alt={name} className="w-full h-36 object-cover" loading="lazy" decoding="async" />
-              ) : (
-                <div className={`h-28 flex items-center justify-center ${
-                  isPlace    ? 'bg-gradient-to-br from-blue-900 to-indigo-900'
-                : isActivity ? 'bg-gradient-to-br from-purple-900 to-violet-900'
-                :               'bg-gradient-to-br from-green-900 to-teal-900'
-                }`}>
-                  {isPlace    && <MapPin   className="h-10 w-10 text-blue-300/50"   aria-hidden="true" />}
-                  {isActivity && <Zap      className="h-10 w-10 text-purple-300/50" aria-hidden="true" />}
-                  {isEvent    && <Calendar className="h-10 w-10 text-green-300/50"  aria-hidden="true" />}
-                </div>
-              )}
+              {(() => {
+                const heroImgSrc = image || getCategoryImageUrl(category)
+                return (
+                  <img
+                    src={heroImgSrc}
+                    alt={name}
+                    className="w-full h-36 object-cover"
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = getCategoryImageUrl(category) }}
+                  />
+                )
+              })()}
               <div className="p-4 flex flex-col gap-2">
                 <div className="flex items-start justify-between gap-2">
                   <div>
