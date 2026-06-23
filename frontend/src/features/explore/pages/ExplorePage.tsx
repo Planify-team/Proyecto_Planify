@@ -1,89 +1,99 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
-import { MapPin, Activity, TrendingUp, Navigation, Filter, X, Globe, Compass, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { usePlaces, usePlacesPaginated } from '@/hooks/usePlaces'
-import { useActivitiesPaginated } from '@/hooks/useActivities'
+import { MapPin, TrendingUp, Navigation, Filter, X, Globe, Compass, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { usePlaces } from '@/hooks/usePlaces'
 import { useTrending } from '@/hooks/useTrending'
 import { useExternalPlaces } from '@/hooks/useExternalPlaces'
 import PlaceCard from '@/components/ui/PlaceCard'
-import ActivityCard from '@/components/ui/ActivityCard'
 import SearchBar from '@/components/ui/SearchBar'
 import EmptyState from '@/components/common/EmptyState'
 
-type Tab = 'lugares' | 'actividades' | 'cerca'
+type Tab = 'lugares' | 'cerca'
 
-const ACTIVITY_TYPE_CHIPS = [
-  { type: 'gaming',     emoji: '🎮', label: 'Gaming' },
-  { type: 'sports',     emoji: '⚽', label: 'Deportes' },
-  { type: 'cinema',     emoji: '🎬', label: 'Cine' },
-  { type: 'concert',    emoji: '🎵', label: 'Música' },
-  { type: 'museum',     emoji: '🏛️', label: 'Museos' },
-  { type: 'park',       emoji: '🌳', label: 'Parques' },
-  { type: 'restaurant', emoji: '🍽️', label: 'Gastronomía' },
-  { type: 'bar',        emoji: '🍺', label: 'Bares' },
-  { type: 'tourism',    emoji: '✈️', label: 'Turismo' },
-  { type: 'shopping',   emoji: '🛍️', label: 'Shopping' },
+const PAGE_SIZE = 24
+
+// Category chips — keyword matching against place.category (case-insensitive)
+const PLACE_CHIPS: { key: string; emoji: string; label: string; keywords: string[] }[] = [
+  { key: 'entretenimiento', emoji: '🎮', label: 'Juegos',       keywords: ['entretenimiento', 'gaming', 'arcade', 'videojueg', 'juego', 'escape', 'simulac', 'casino', 'nightlife', 'boliche', 'ocio', 'tecnolog'] },
+  { key: 'cultural',       emoji: '🏛️', label: 'Cultura',      keywords: ['museo', 'cultur', 'teatro', 'cine', 'arte', 'histori', 'ciencia', 'música', 'danza', 'tango'] },
+  { key: 'gastronomia',    emoji: '🍽️', label: 'Gastronomía',  keywords: ['gastro', 'café', 'cafe', 'bar', 'restaurante', 'cafetería', 'feria'] },
+  { key: 'deportes',       emoji: '⚽', label: 'Deportes',      keywords: ['deporte', 'deportiv', 'estadio', 'fútbol', 'futbol', 'club deportiv', 'aventura', 'trampolines', 'gimnasia', 'tiro'] },
+  { key: 'naturaleza',     emoji: '🌳', label: 'Parques',       keywords: ['parque', 'plaza', 'naturaleza', 'verde', 'aire libre', 'espacios verdes'] },
+  { key: 'shopping',       emoji: '🛍️', label: 'Shopping',     keywords: ['shopping', 'comercial', 'compras', 'paseo comercial'] },
+  { key: 'turismo',        emoji: '✈️', label: 'Turismo',       keywords: ['turismo', 'turístic', 'monumento', 'arquitectura'] },
 ]
 
+function matchesChip(category: string, chip: typeof PLACE_CHIPS[number]) {
+  const lower = category.toLowerCase()
+  return chip.keywords.some((kw) => lower.includes(kw))
+}
+
 interface PlaceFilters {
-  city?: string
-  category?: string
-  lat?: number
-  lon?: number
-  radius_km?: number
   outdoor_seating?: boolean
   fee?: boolean
   wheelchair?: string
   cuisine?: string
 }
-interface ActivityFilters { category?: string; indoor?: boolean; outdoor?: boolean; free?: boolean; type?: string }
 
 export default function ExplorePage() {
-  const location = useLocation()
-  const initialType = (location.state as { activityType?: string } | null)?.activityType
-  const [tab, setTab] = useState<Tab>('actividades')
+  const [tab, setTab] = useState<Tab>('lugares')
   const [search, setSearch] = useState('')
+  const [selectedChip, setSelectedChip] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [page, setPage] = useState(1)
-  const navigate = useNavigate()
-
   const [placeFilters, setPlaceFilters] = useState<PlaceFilters>({})
-  const [activityFilters, setActivityFilters] = useState<ActivityFilters>(() => ({ type: initialType }))
   const [nearbyCoords, setNearbyCoords] = useState<{ lat: number; lon: number } | null>(null)
   const [geoLoading, setGeoLoading] = useState(false)
   const [geoError, setGeoError] = useState<string | null>(null)
+  const navigate = useNavigate()
+
+  // Load all 225 internal places once — client-side filtering
+  const { data: allPlaces = [], isLoading: placesLoading } = usePlaces({})
 
   const [debouncedSearch, setDebouncedSearch] = useState('')
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 300)
+    const t = setTimeout(() => setDebouncedSearch(search), 250)
     return () => clearTimeout(t)
   }, [search])
 
-  // Reset to page 1 when tab, search or filters change
-  useEffect(() => { setPage(1) }, [tab, debouncedSearch, placeFilters, activityFilters])
+  // Reset page when filters change
+  useEffect(() => { setPage(1) }, [tab, debouncedSearch, selectedChip, placeFilters])
 
-  // Paginated queries for the three main tabs
-  const places = usePlacesPaginated({
-    page,
-    name: tab === 'lugares' ? (debouncedSearch || undefined) : undefined,
-    city: tab === 'lugares' ? (placeFilters.city || undefined) : undefined,
-    category: tab === 'lugares' ? placeFilters.category : undefined,
-    outdoor_seating: tab === 'lugares' ? placeFilters.outdoor_seating : undefined,
-    fee: tab === 'lugares' ? placeFilters.fee : undefined,
-    wheelchair: tab === 'lugares' ? placeFilters.wheelchair : undefined,
-    cuisine: tab === 'lugares' ? placeFilters.cuisine : undefined,
-  })
+  // Client-side filter + search
+  const filteredPlaces = useMemo(() => {
+    let result = allPlaces.filter((p) => p.source === 'internal')
 
-  const activities = useActivitiesPaginated({
-    page,
-    category: tab === 'actividades' ? (activityFilters.category || debouncedSearch || undefined) : undefined,
-    indoor: tab === 'actividades' && activityFilters.indoor ? true : undefined,
-    outdoor: tab === 'actividades' && activityFilters.outdoor ? true : undefined,
-    free: tab === 'actividades' && activityFilters.free ? true : undefined,
-    type: tab === 'actividades' ? activityFilters.type : undefined,
-  })
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase()
+      result = result.filter((p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        p.address.toLowerCase().includes(q)
+      )
+    }
 
-  // Nearby tab uses non-paginated (filtered by radius, always small result set)
+    if (selectedChip) {
+      const chip = PLACE_CHIPS.find((c) => c.key === selectedChip)
+      if (chip) result = result.filter((p) => matchesChip(p.category, chip))
+    }
+
+    if (placeFilters.outdoor_seating) result = result.filter((p) => p.outdoor_seating === true)
+    if (placeFilters.fee === false)    result = result.filter((p) => p.fee === false)
+    if (placeFilters.wheelchair === 'yes') result = result.filter((p) => p.wheelchair === 'yes')
+    if (placeFilters.cuisine)          result = result.filter((p) => p.cuisine?.toLowerCase().includes(placeFilters.cuisine!.toLowerCase()))
+
+    return result
+  }, [allPlaces, debouncedSearch, selectedChip, placeFilters])
+
+  // Client-side pagination
+  const totalCount = filteredPlaces.length
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+  const pagedPlaces = useMemo(() =>
+    filteredPlaces.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filteredPlaces, page]
+  )
+
+  // Nearby tab
   const nearbyPlaces = usePlaces(
     nearbyCoords ? { lat: nearbyCoords.lat, lon: nearbyCoords.lon, radius_km: 5 } : {},
   )
@@ -100,12 +110,11 @@ export default function ExplorePage() {
   }, [nearbyPlaces.data, externalNearby.data])
 
   const { data: trending } = useTrending()
-  const showTrending = !search && tab !== 'cerca'
+  const showTrending = !search && !selectedChip && tab === 'lugares'
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'lugares', label: 'Lugares', icon: <MapPin className="h-4 w-4" aria-hidden="true" /> },
-    { id: 'actividades', label: 'Actividades', icon: <Activity className="h-4 w-4" aria-hidden="true" /> },
-    { id: 'cerca', label: 'Cerca de mí', icon: <Navigation className="h-4 w-4" aria-hidden="true" /> },
+    { id: 'cerca',   label: 'Cerca de mí', icon: <Navigation className="h-4 w-4" aria-hidden="true" /> },
   ]
 
   const requestGeolocation = useCallback(() => {
@@ -119,17 +128,8 @@ export default function ExplorePage() {
     )
   }, [])
 
-  const activeFilterCount = tab === 'lugares'
-    ? Object.values(placeFilters).filter((v) => v !== undefined && v !== false).length + (placeFilters.fee === false ? 1 : 0)
-    : tab === 'actividades'
-    ? Object.values(activityFilters).filter((v) => v !== undefined && v !== false).length
-    : 0
-
-  // Derived pagination info for active tab
-  const activePaginated = tab === 'lugares' ? places : activities
-  const totalCount = activePaginated.data?.count ?? 0
-  const totalPages = Math.ceil(totalCount / 30)
-  const showPagination = tab !== 'cerca' && totalPages > 1
+  const activeFilterCount = Object.values(placeFilters).filter((v) => v !== undefined && v !== false).length
+    + (placeFilters.fee === false ? 1 : 0)
 
   return (
     <div className="flex flex-col gap-6">
@@ -139,15 +139,16 @@ export default function ExplorePage() {
           <Compass className="h-6 w-6 text-primary-600" aria-hidden="true" />
           <h1 className="text-2xl font-bold text-gray-900">Explorar</h1>
         </div>
-        <p className="text-gray-500 text-sm">Descubrí lugares, actividades y eventos cerca tuyo.</p>
+        <p className="text-gray-500 text-sm">Descubrí 225 lugares curados en Buenos Aires.</p>
       </div>
 
-      {tab !== 'cerca' && (
+      {/* Search + filters — only on lugares tab */}
+      {tab === 'lugares' && (
         <div className="flex gap-2 items-center">
           <SearchBar
             value={search}
             onChange={setSearch}
-            placeholder={tab === 'lugares' ? 'Buscar por nombre...' : 'Buscar por categoría...'}
+            placeholder="Buscar por nombre, barrio..."
             className="flex-1 max-w-md"
           />
           <button
@@ -171,78 +172,58 @@ export default function ExplorePage() {
         </div>
       )}
 
-      {/* Filter panels */}
+      {/* Filter panel */}
       {showFilters && tab === 'lugares' && (
         <FilterPanel onClose={() => setShowFilters(false)}>
-          <FilterRow label="Categoría">
-            <input type="text" value={placeFilters.category ?? ''} onChange={(e) => setPlaceFilters((f) => ({ ...f, category: e.target.value || undefined }))} placeholder="ej. cafe, museo" />
-          </FilterRow>
           <FilterRow label="Tipo de cocina">
             <input type="text" value={placeFilters.cuisine ?? ''} onChange={(e) => setPlaceFilters((f) => ({ ...f, cuisine: e.target.value || undefined }))} placeholder="ej. pizza, sushi" />
           </FilterRow>
           <div className="flex flex-wrap gap-4">
             <CheckFilter label="Solo con terraza" checked={placeFilters.outdoor_seating ?? false} onChange={(v) => setPlaceFilters((f) => ({ ...f, outdoor_seating: v || undefined }))} />
-            <CheckFilter label="Entrada gratuita" checked={placeFilters.fee === false} onChange={(v) => setPlaceFilters((f) => ({ ...f, fee: v ? false : undefined }))} />
-            <CheckFilter label="Acceso en silla de ruedas" checked={placeFilters.wheelchair === 'yes'} onChange={(v) => setPlaceFilters((f) => ({ ...f, wheelchair: v ? 'yes' : undefined }))} />
+            <CheckFilter label="Entrada gratuita"  checked={placeFilters.fee === false}            onChange={(v) => setPlaceFilters((f) => ({ ...f, fee: v ? false : undefined }))} />
+            <CheckFilter label="Silla de ruedas"   checked={placeFilters.wheelchair === 'yes'}     onChange={(v) => setPlaceFilters((f) => ({ ...f, wheelchair: v ? 'yes' : undefined }))} />
           </div>
           <button onClick={() => setPlaceFilters({})} className="text-xs text-red-500 hover:underline self-start focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/40 rounded">Limpiar filtros</button>
         </FilterPanel>
       )}
-      {showFilters && tab === 'actividades' && (
-        <FilterPanel onClose={() => setShowFilters(false)}>
-          <FilterRow label="Categoría">
-            <input type="text" value={activityFilters.category ?? ''} onChange={(e) => setActivityFilters((f) => ({ ...f, category: e.target.value || undefined }))} placeholder="ej. música, deportes" />
-          </FilterRow>
-          <div className="flex flex-wrap gap-4">
-            <CheckFilter label="Solo interior" checked={activityFilters.indoor ?? false} onChange={(v) => setActivityFilters((f) => ({ ...f, indoor: v || undefined }))} />
-            <CheckFilter label="Solo exterior" checked={activityFilters.outdoor ?? false} onChange={(v) => setActivityFilters((f) => ({ ...f, outdoor: v || undefined }))} />
-            <CheckFilter label="Gratuitas" checked={activityFilters.free ?? false} onChange={(v) => setActivityFilters((f) => ({ ...f, free: v || undefined }))} />
-          </div>
-          <button onClick={() => setActivityFilters({})} className="text-xs text-red-500 hover:underline self-start focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/40 rounded">Limpiar filtros</button>
-        </FilterPanel>
-      )}
-      {/* Trending */}
-      {showTrending && trending && (
-        <>
-          {trending.places.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-primary-600" aria-hidden="true" />
-                  <h2 className="text-sm font-semibold text-gray-600">Lugares más populares</h2>
-                </div>
-                <button onClick={() => setTab('lugares')} className="text-xs text-primary-600 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/40 rounded">
-                  Ver todos
-                </button>
-              </div>
-              <div className="relative">
-                <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-                  {trending.places.map((p) => (
-                    <button key={p.id} onClick={() => navigate(`/places/${p.id}`)} aria-label={p.name}
-                      className="group flex-shrink-0 w-44 bg-white rounded-xl border border-gray-200 shadow-glass-sm overflow-hidden hover:shadow-neon-sm hover:border-primary-500/30 transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
-                      {p.image_url ? (
-                        <img src={p.image_url} alt="" className="w-full h-28 object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-                      ) : (
-                        <div className="w-full h-28 bg-primary-100/40 flex items-center justify-center" aria-hidden="true"><MapPin className="h-8 w-8 text-primary-500" /></div>
-                      )}
-                      <div className="p-2"><p className="text-xs font-semibold text-gray-900 truncate">{p.name}</p><p className="text-xs text-gray-400 truncate">{p.city}</p></div>
-                    </button>
-                  ))}
-                </div>
-                <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-gray-50 to-transparent pointer-events-none" aria-hidden="true" />
-              </div>
+
+      {/* Trending — only when no search/chip active */}
+      {showTrending && trending?.places && trending.places.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-primary-600" aria-hidden="true" />
+              <h2 className="text-sm font-semibold text-gray-600">Más populares</h2>
             </div>
-          )}
-        </>
+          </div>
+          <div className="relative">
+            <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+              {trending.places.map((p) => (
+                <button key={p.id} onClick={() => navigate(`/places/${p.id}`)} aria-label={p.name}
+                  className="group flex-shrink-0 w-44 bg-white rounded-xl border border-gray-200 shadow-glass-sm overflow-hidden hover:shadow-neon-sm hover:border-primary-500/30 transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
+                  {p.image_url
+                    ? <img src={p.image_url} alt="" className="w-full h-28 object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                    : <div className="w-full h-28 bg-primary-100/40 flex items-center justify-center" aria-hidden="true"><MapPin className="h-8 w-8 text-primary-500" /></div>
+                  }
+                  <div className="p-2">
+                    <p className="text-xs font-semibold text-gray-900 truncate">{p.name}</p>
+                    <p className="text-xs text-gray-400 truncate">{p.category}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-gray-50 to-transparent pointer-events-none" aria-hidden="true" />
+          </div>
+        </div>
       )}
 
       {/* Tabs */}
       <div className="relative -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div role="tablist" className="flex gap-1 border-b border-gray-200 overflow-x-auto scrollbar-hide">
+        <div role="tablist" className="flex gap-1 border-b border-gray-200">
           {tabs.map((t) => (
             <button key={t.id} role="tab" aria-selected={tab === t.id}
               onClick={() => { setTab(t.id); setShowFilters(false) }}
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${
                 tab === t.id ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -250,33 +231,19 @@ export default function ExplorePage() {
             </button>
           ))}
         </div>
-        {/* Gradient hint: indicates more tabs are scrollable on mobile */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-[#07060f] to-transparent sm:hidden" aria-hidden="true" />
       </div>
 
-      {/* Content */}
+      {/* Lugares tab */}
       {tab === 'lugares' && (
         <>
-          <TabContent isLoading={places.isLoading} isEmpty={!places.data?.results?.length}>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-              {places.data?.results.map((place) => <PlaceCard key={place.id} place={place} />)}
-            </div>
-          </TabContent>
-          {showPagination && (
-            <Pagination page={page} totalPages={totalPages} total={totalCount} onPageChange={setPage} isFetching={places.isFetching} />
-          )}
-        </>
-      )}
-
-      {tab === 'actividades' && (
-        <>
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-            {ACTIVITY_TYPE_CHIPS.map((chip) => (
-              <button key={chip.type}
-                onClick={() => setActivityFilters((f) => ({ ...f, type: f.type === chip.type ? undefined : chip.type }))}
-                aria-pressed={activityFilters.type === chip.type}
+          {/* Category chips */}
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+            {PLACE_CHIPS.map((chip) => (
+              <button key={chip.key}
+                onClick={() => setSelectedChip(selectedChip === chip.key ? null : chip.key)}
+                aria-pressed={selectedChip === chip.key}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border transition-all flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
-                  activityFilters.type === chip.type
+                  selectedChip === chip.key
                     ? 'bg-primary-600 text-white border-primary-500 shadow-neon-sm'
                     : 'bg-white text-gray-600 border-gray-200 hover:border-primary-500/40 hover:text-primary-600'
                 }`}
@@ -285,17 +252,28 @@ export default function ExplorePage() {
               </button>
             ))}
           </div>
-          <TabContent isLoading={activities.isLoading} isEmpty={!activities.data?.results?.length}>
+
+          {/* Results count when filtered */}
+          {(selectedChip || debouncedSearch) && !placesLoading && (
+            <p className="text-xs text-gray-500 -mt-2">
+              {totalCount === 0 ? 'Sin resultados' : `${totalCount} lugar${totalCount !== 1 ? 'es' : ''} encontrado${totalCount !== 1 ? 's' : ''}`}
+              {selectedChip && <button onClick={() => setSelectedChip(null)} className="ml-2 text-primary-500 hover:underline">Limpiar</button>}
+            </p>
+          )}
+
+          <TabContent isLoading={placesLoading} isEmpty={pagedPlaces.length === 0}>
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-              {activities.data?.results.map((activity) => <ActivityCard key={activity.id} activity={activity} />)}
+              {pagedPlaces.map((place) => <PlaceCard key={place.id} place={place} />)}
             </div>
           </TabContent>
-          {showPagination && (
-            <Pagination page={page} totalPages={totalPages} total={totalCount} onPageChange={setPage} isFetching={activities.isFetching} />
+
+          {totalPages > 1 && (
+            <Pagination page={page} totalPages={totalPages} total={totalCount} onPageChange={setPage} />
           )}
         </>
       )}
 
+      {/* Cerca de mí tab */}
       {tab === 'cerca' && (
         <div>
           {!nearbyCoords && !geoLoading && (
@@ -355,15 +333,12 @@ export default function ExplorePage() {
 
 // ─── Pagination ───────────────────────────────────────────────────────────────
 
-function Pagination({
-  page, totalPages, total, onPageChange, isFetching,
-}: {
-  page: number; totalPages: number; total: number; onPageChange: (p: number) => void; isFetching: boolean
+function Pagination({ page, totalPages, total, onPageChange }: {
+  page: number; totalPages: number; total: number; onPageChange: (p: number) => void
 }) {
-  const from = (page - 1) * 30 + 1
-  const to = Math.min(page * 30, total)
+  const from = (page - 1) * PAGE_SIZE + 1
+  const to   = Math.min(page * PAGE_SIZE, total)
 
-  // Page numbers to show: always show first, last, and up to 3 around current
   const pageNums: (number | '...')[] = []
   const add = (n: number) => { if (!pageNums.includes(n)) pageNums.push(n) }
   add(1)
@@ -373,49 +348,34 @@ function Pagination({
   if (totalPages > 1) add(totalPages)
 
   return (
-    <nav aria-label="Paginación" className={`flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 transition-opacity ${isFetching ? 'opacity-60' : 'opacity-100'}`}>
+    <nav aria-label="Paginación" className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
       <p className="text-xs text-gray-500">
-        Mostrando <span className="font-medium text-gray-700">{from}–{to}</span> de <span className="font-medium text-gray-700">{total}</span> resultados
+        Mostrando <span className="font-medium text-gray-700">{from}–{to}</span> de <span className="font-medium text-gray-700">{total}</span>
       </p>
       <div className="flex items-center gap-1">
-        <button
-          onClick={() => onPageChange(page - 1)}
-          disabled={page === 1 || isFetching}
+        <button onClick={() => onPageChange(page - 1)} disabled={page === 1}
           aria-label="Página anterior"
-          className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
-        >
+          className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
           <ChevronLeft className="h-4 w-4" aria-hidden="true" /> Anterior
         </button>
-
         <div className="flex items-center gap-1 mx-1">
           {pageNums.map((n, i) =>
             n === '...' ? (
-              <span key={`ellipsis-${i}`} className="px-2 text-gray-400 text-sm select-none">…</span>
+              <span key={`e-${i}`} className="px-2 text-gray-400 text-sm select-none">…</span>
             ) : (
-              <button
-                key={n}
-                onClick={() => onPageChange(n as number)}
-                disabled={isFetching}
-                aria-label={`Página ${n}`}
-                aria-current={n === page ? 'page' : undefined}
+              <button key={n} onClick={() => onPageChange(n as number)}
+                aria-label={`Página ${n}`} aria-current={n === page ? 'page' : undefined}
                 className={`w-8 h-8 text-sm rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
-                  n === page
-                    ? 'bg-primary-600 text-white shadow-neon-sm'
-                    : 'border border-gray-200 text-gray-600 hover:bg-white/5 disabled:opacity-40'
-                }`}
-              >
+                  n === page ? 'bg-primary-600 text-white shadow-neon-sm' : 'border border-gray-200 text-gray-600 hover:bg-white/5'
+                }`}>
                 {n}
               </button>
             )
           )}
         </div>
-
-        <button
-          onClick={() => onPageChange(page + 1)}
-          disabled={page === totalPages || isFetching}
+        <button onClick={() => onPageChange(page + 1)} disabled={page === totalPages}
           aria-label="Página siguiente"
-          className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
-        >
+          className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
           Siguiente <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
@@ -444,7 +404,7 @@ function TabContent({ isLoading, isEmpty, children }: { isLoading: boolean; isEm
       {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
     </div>
   )
-  if (isEmpty) return <EmptyState title="Sin resultados" description="No encontramos nada con ese criterio. Probá con otro término." />
+  if (isEmpty) return <EmptyState title="Sin resultados" description="No encontramos nada con ese criterio. Probá con otro término o limpié los filtros." />
   return <>{children}</>
 }
 
@@ -452,7 +412,7 @@ function FilterPanel({ children, onClose }: { children: React.ReactNode; onClose
   return (
     <div className="bg-white border border-gray-200/30 rounded-xl p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-gray-600">Filtros avanzados</span>
+        <span className="text-sm font-semibold text-gray-600">Filtros</span>
         <button onClick={onClose} aria-label="Cerrar filtros" className="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 rounded p-0.5">
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
