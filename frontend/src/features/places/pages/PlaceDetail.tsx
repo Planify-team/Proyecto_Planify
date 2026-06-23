@@ -118,59 +118,67 @@ export default function PlaceDetail() {
 
       {/* Enriched place info */}
       {(place.opening_hours || place.cuisine || place.fee !== null || place.outdoor_seating !== null || place.internet_access !== null || place.wheelchair) && (
-        <div className="bg-gray-100 rounded-xl p-4 border border-gray-200/30">
-          <h2 className="text-sm font-semibold text-gray-600 mb-3">Información del lugar</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
-              <span className="text-gray-500">Horario:</span>
-              <span className="text-gray-800 truncate">
+        <div className="bg-gray-100 rounded-xl p-4 border border-gray-200/30 flex flex-col gap-3">
+          <h2 className="text-sm font-semibold text-gray-600">Información del lugar</h2>
+
+          {/* Horario — fila completa, sin truncate */}
+          <div className="flex items-start gap-2 text-sm">
+            <Clock className="h-4 w-4 text-gray-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="flex-1">
+              <span className="text-gray-500">Horario: </span>
+              <span className="text-gray-800 whitespace-pre-line">
                 {place.opening_hours || 'Sin información'}
-                {place.is_open_now === true && (
-                  <span className="ml-2 text-xs bg-green-500/15 text-green-400 px-1.5 py-0.5 rounded-full">Abierto</span>
-                )}
-                {place.is_open_now === false && (
-                  <span className="ml-2 text-xs bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded-full">Cerrado</span>
-                )}
               </span>
+              {place.is_open_now === true && (
+                <span className="ml-2 text-xs bg-green-500/15 text-green-400 px-1.5 py-0.5 rounded-full inline-block">Abierto ahora</span>
+              )}
+              {place.is_open_now === false && (
+                <span className="ml-2 text-xs bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded-full inline-block">Cerrado ahora</span>
+              )}
             </div>
-            {place.cuisine && (
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">Tipo:</span>
-                <span className="text-gray-800">{place.cuisine.replace(/;/g, ', ')}</span>
-              </div>
-            )}
-            {place.fee !== null && (
-              <div className="flex items-center gap-2">
-                <Ticket className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
-                <span className="text-gray-500">Entrada:</span>
-                <span className="text-gray-800">{place.fee ? 'Paga' : 'Gratuita'}</span>
-              </div>
-            )}
-            {place.outdoor_seating !== null && (
-              <div className="flex items-center gap-2">
-                <TreePine className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
-                <span className="text-gray-500">Terraza:</span>
-                <span className="text-gray-800">{place.outdoor_seating ? 'Sí' : 'No'}</span>
-              </div>
-            )}
-            {place.internet_access !== null && (
-              <div className="flex items-center gap-2">
-                <Wifi className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
-                <span className="text-gray-500">Wifi:</span>
-                <span className="text-gray-800">{place.internet_access ? 'Disponible' : 'No'}</span>
-              </div>
-            )}
-            {place.wheelchair && (
-              <div className="flex items-center gap-2">
-                <Accessibility className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
-                <span className="text-gray-500">Acceso:</span>
-                <span className="text-gray-800">
-                  {place.wheelchair === 'yes' ? 'Apto' : place.wheelchair === 'limited' ? 'Limitado' : 'No apto'}
-                </span>
-              </div>
-            )}
           </div>
+
+          {/* Resto de campos en grilla */}
+          {(place.cuisine || place.fee !== null || place.outdoor_seating !== null || place.internet_access !== null || place.wheelchair) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm">
+              {place.cuisine && (
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500">Tipo de cocina:</span>
+                  <span className="text-gray-800">{place.cuisine.replace(/;/g, ', ')}</span>
+                </div>
+              )}
+              {place.fee !== null && (
+                <div className="flex items-center gap-2">
+                  <Ticket className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
+                  <span className="text-gray-500">Entrada:</span>
+                  <span className="text-gray-800">{place.fee ? 'Paga' : 'Gratuita'}</span>
+                </div>
+              )}
+              {place.outdoor_seating !== null && (
+                <div className="flex items-center gap-2">
+                  <TreePine className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
+                  <span className="text-gray-500">Terraza:</span>
+                  <span className="text-gray-800">{place.outdoor_seating ? 'Sí' : 'No'}</span>
+                </div>
+              )}
+              {place.internet_access !== null && (
+                <div className="flex items-center gap-2">
+                  <Wifi className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
+                  <span className="text-gray-500">Wifi:</span>
+                  <span className="text-gray-800">{place.internet_access ? 'Disponible' : 'No'}</span>
+                </div>
+              )}
+              {place.wheelchair && (
+                <div className="flex items-center gap-2">
+                  <Accessibility className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
+                  <span className="text-gray-500">Accesibilidad:</span>
+                  <span className="text-gray-800">
+                    {place.wheelchair === 'yes' ? 'Apto silla de ruedas' : place.wheelchair === 'limited' ? 'Acceso limitado' : 'No apto'}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -179,7 +187,7 @@ export default function PlaceDetail() {
           <MapPin className="h-5 w-5 text-primary-600 flex-shrink-0" aria-hidden="true" />
           <div className="min-w-0 flex-1">
             <p className="text-xs text-gray-500">Dirección</p>
-            <p className="text-sm font-medium text-gray-900 truncate">{place.address}, {place.city}</p>
+            <p className="text-sm font-medium text-gray-900 break-words">{place.address}, {place.city}</p>
           </div>
           {hasCoords && (
             <a
@@ -211,7 +219,7 @@ export default function PlaceDetail() {
             <div>
               <p className="text-xs text-gray-500">Sitio web</p>
               <a href={place.website} target="_blank" rel="noopener noreferrer"
-                className="text-sm font-medium text-primary-600 hover:underline truncate block focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/40 rounded">
+                className="text-sm font-medium text-primary-600 hover:underline break-all block focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500/40 rounded">
                 {place.website}
               </a>
             </div>
@@ -222,7 +230,7 @@ export default function PlaceDetail() {
       {/* Map */}
       {hasCoords && (
         <div
-          className="rounded-xl overflow-hidden border border-gray-200/30 h-[200px]"
+          className="rounded-xl overflow-hidden border border-gray-200/30 h-[260px]"
           role="region"
           aria-label={`Mapa de ${place.name}`}
         >
