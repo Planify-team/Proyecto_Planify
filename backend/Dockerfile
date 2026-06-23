@@ -19,6 +19,11 @@ RUN addgroup --system django && adduser --system --ingroup django django
 
 RUN mkdir -p /app/staticfiles /app/mediafiles && chown -R django:django /app/staticfiles /app/mediafiles
 
+RUN DJANGO_SETTINGS_MODULE=config.settings.production \
+    SECRET_KEY=build-only-not-real \
+    DATABASE_URL="" \
+    python manage.py collectstatic --noinput
+
 USER django
 
 EXPOSE 8000
