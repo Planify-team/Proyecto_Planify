@@ -78,7 +78,7 @@ export default function HomePage() {
   )
 
   return (
-    <div className="flex flex-col gap-8 pb-8">
+    <div className="flex flex-col gap-8 pb-8 fade-in-up">
       <title>Inicio | Planify</title>
 
       {/* Header */}
@@ -263,6 +263,20 @@ export default function HomePage() {
           </button>{' '}
           para armar un itinerario
         </p>
+      </div>
+
+      {/* Stats strip */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { value: '193+', label: 'Lugares', color: 'text-primary-500', delay: 'count-up' },
+          { value: '50+',  label: 'Actividades', color: 'text-electric-cyan', delay: 'count-up fade-in-up-1' },
+          { value: '4.8★', label: 'Valoración', color: 'text-violet-400', delay: 'count-up fade-in-up-2' },
+        ].map((s) => (
+          <div key={s.label} className="bg-white border border-gray-200 rounded-2xl p-4 text-center shadow-glass-sm">
+            <p className={`text-2xl font-bold ${s.color} ${s.delay}`}>{s.value}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+          </div>
+        ))}
       </div>
 
       {/* ¿Qué querés hacer? */}

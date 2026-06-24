@@ -71,7 +71,7 @@ export default function PlaceDetail() {
     : [-34.6037, -58.3816]
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4 flex flex-col gap-6">
+    <div className="max-w-2xl mx-auto py-8 px-4 flex flex-col gap-6 fade-in-up">
       <title>{place.name} | Planify</title>
       <button
         onClick={() => navigate(-1)}
@@ -84,13 +84,39 @@ export default function PlaceDetail() {
       {(() => {
         const src = imgSrc ?? place.image_url ?? getCategoryImageUrl(place.category)
         return (
-          <img
-            src={src}
-            alt={place.name}
-            className="w-full h-56 object-cover rounded-xl"
-            decoding="async"
-            onError={() => setImgSrc(getCategoryImageUrl(place.category))}
-          />
+          <div className="relative rounded-2xl overflow-hidden fade-in-up">
+            <img
+              src={src}
+              alt={place.name}
+              className="w-full h-72 object-cover"
+              decoding="async"
+              onError={() => setImgSrc(getCategoryImageUrl(place.category))}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+            <div className="absolute bottom-3 left-3 flex items-center gap-2">
+              <span className="bg-black/50 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full capitalize border border-white/20">
+                {place.category}
+              </span>
+              {place.is_open_now === true && (
+                <span className="bg-green-500/80 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                  Abierto ahora
+                </span>
+              )}
+              {place.is_open_now === false && (
+                <span className="bg-red-500/70 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                  Cerrado
+                </span>
+              )}
+            </div>
+            {place.avg_rating && (
+              <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-black/50 backdrop-blur-sm text-yellow-300 text-sm font-bold px-3 py-1.5 rounded-full border border-white/20">
+                ★ {Number(place.avg_rating).toFixed(1)}
+                {place.review_count > 0 && (
+                  <span className="text-white/60 text-xs font-normal">({place.review_count})</span>
+                )}
+              </div>
+            )}
+          </div>
         )
       })()}
 

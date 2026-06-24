@@ -117,6 +117,7 @@ export default function FavoritesPage() {
           title="Sin favoritos aún"
           description="Explorá lugares, actividades y eventos, y tocá el corazón para guardarlos acá."
           icon={<Heart className="h-12 w-12 text-gray-300" />}
+          action={{ label: 'Explorar lugares', onClick: () => navigate('/explorar') }}
         />
       ) : visible.length === 0 ? (
         <EmptyState
@@ -126,14 +127,15 @@ export default function FavoritesPage() {
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {visible.map((fav) => {
+          {visible.map((fav, i) => {
             const config = fav.item_type ? typeConfig[fav.item_type as FavItemType] : null
             const Icon = config?.icon
             const url = getFavUrl(fav)
             return (
               <div
                 key={fav.id}
-                className={`bg-white rounded-xl border border-gray-200 border-l-4 ${config?.border ?? 'border-l-gray-300'} shadow-glass-sm p-4 flex items-center gap-3 hover:shadow-neon-sm transition-all ${url ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40' : ''}`}
+                style={{ animationDelay: `${i * 0.05}s` }}
+                className={`fade-in-up bg-white rounded-xl border border-gray-200 border-l-4 ${config?.border ?? 'border-l-gray-300'} shadow-glass-sm p-4 flex items-center gap-3 hover:shadow-neon-sm transition-all ${url ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40' : ''}`}
                 onClick={() => url && navigate(url)}
                 role={url ? 'button' : undefined}
                 tabIndex={url ? 0 : undefined}

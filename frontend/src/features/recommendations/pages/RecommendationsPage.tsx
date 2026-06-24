@@ -101,8 +101,8 @@ export default function RecommendationsPage() {
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {recommendations.map((rec) => (
-            <RecommendationCard key={rec.id} rec={rec} />
+          {recommendations.map((rec, i) => (
+            <RecommendationCard key={rec.id} rec={rec} index={i} />
           ))}
         </div>
       )}
@@ -141,7 +141,7 @@ function buildLocation(rec: Recommendation): { street: string; city: string } {
   return { street: '', city: '' }
 }
 
-function RecommendationCard({ rec }: { rec: Recommendation }) {
+function RecommendationCard({ rec, index = 0 }: { rec: Recommendation; index?: number }) {
   const navigate = useNavigate()
   const score = Math.round(parseFloat(rec.score))
   const badge = getScoreBadge(score)
@@ -186,7 +186,8 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
 
   return (
     <div
-      className="bg-white rounded-xl border border-gray-200 shadow-glass-sm p-4 flex flex-col gap-3 hover:shadow-neon-sm hover:border-primary-500/30 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
+      style={{ animationDelay: `${index * 0.06}s` }}
+      className="fade-in-up bg-white rounded-xl border border-gray-200 shadow-glass-sm p-4 flex flex-col gap-3 hover:shadow-neon-sm hover:border-primary-500/30 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
       onClick={handleClick}
       role="button"
       tabIndex={0}

@@ -200,9 +200,10 @@ export default function ExplorePage() {
           </div>
           <div className="relative">
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
-              {trending.places.map((p) => (
+              {trending.places.map((p, i) => (
                 <button key={p.id} onClick={() => navigate(`/places/${p.id}`)} aria-label={p.name}
-                  className="group relative flex-shrink-0 w-40 sm:w-48 rounded-2xl overflow-hidden shadow-glass-sm hover:shadow-neon-sm transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
+                  style={{ animationDelay: `${i * 0.07}s` }}
+                  className="group relative flex-shrink-0 w-40 sm:w-48 rounded-2xl overflow-hidden shadow-glass-sm hover:shadow-neon-sm transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 fade-in-up">
                   <div className="h-36 sm:h-44 relative">
                     {p.image_url
                       ? <img src={p.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
