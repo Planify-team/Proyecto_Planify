@@ -18,7 +18,7 @@ DAY_NAMES_ES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado",
 class OpenWeatherProvider:
     BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
     FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast"
-    TIMEOUT = 3
+    TIMEOUT = 10
 
     def get_current_weather(self, latitude: float, longitude: float) -> dict | None:
         lat_r = round(latitude, 2)
