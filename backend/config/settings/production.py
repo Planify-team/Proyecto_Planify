@@ -17,10 +17,8 @@ CORS_ALLOWED_ORIGINS = [o for o in _extra_cors if o] + [
     "https://planify-frontend-one-git-main-planify-frontendvercelapp.vercel.app",
 ]
 
-# Fall back to in-memory cache when Redis is not provisioned (avoids 500s from DRF throttling)
-_redis_url = config("REDIS_URL", default="") or config("REDIS_HOST", default="")
-if not _redis_url:
-    CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+# Use in-memory cache — Railway has no Redis, and django_redis pointing at localhost causes 500s on every throttled request
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
