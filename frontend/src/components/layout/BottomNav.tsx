@@ -12,8 +12,8 @@ import Avatar from '@/components/ui/Avatar'
 const PRIMARY_NAV = [
   { to: '/',         icon: Home,         label: 'Inicio' },
   { to: '/explorar', icon: Compass,      label: 'Explorar' },
-  { to: '/planner',  icon: CalendarDays, label: 'Planner' },
   { to: '/mapa',     icon: Map,          label: 'Mapa' },
+  { to: '/planner',  icon: CalendarDays, label: 'Planner' },
 ]
 
 const DRAWER_NAV = [

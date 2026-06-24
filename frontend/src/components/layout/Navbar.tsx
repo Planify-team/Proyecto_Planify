@@ -9,11 +9,11 @@ import Button from '@/components/ui/Button'
 import type { UserRole } from '@/types'
 
 const NAV_LINKS = [
-  { to: '/planner',         label: 'Planner',   icon: <CalendarDays className="h-4 w-4" /> },
   { to: '/recomendaciones', label: 'Para vos',  icon: <Sparkles className="h-4 w-4" /> },
   { to: '/explorar',        label: 'Explorar',  icon: <Compass className="h-4 w-4" /> },
   { to: '/mapa',            label: 'Mapa',      icon: <Map className="h-4 w-4" /> },
   { to: '/favoritos',       label: 'Favoritos', icon: <Heart className="h-4 w-4" /> },
+  { to: '/planner',         label: 'Planner',   icon: <CalendarDays className="h-4 w-4" /> },
 ]
 
 function getDashboardLink(role: UserRole | undefined) {
