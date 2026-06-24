@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { CalendarDays, Sparkles, ArrowRight, FolderOpen } from 'lucide-react'
 import { PlannerForm } from '../components/PlannerForm'
 import { ItineraryView } from '../components/ItineraryView'
@@ -29,7 +30,12 @@ export default function PlannerPage() {
   const handleSubmit = (input: Parameters<typeof planner.mutate>[0]) => {
     setSelectedDate(input.date)
     planner.mutate(input, {
-      onSuccess: (plan) => setCurrentPlan(plan),
+      onSuccess: (plan) => {
+        setCurrentPlan(plan)
+        if (plan.items.length > 0) {
+          toast.success(`¡Plan generado con ${plan.items.length} ${plan.items.length === 1 ? 'actividad' : 'actividades'}!`)
+        }
+      },
     })
   }
 

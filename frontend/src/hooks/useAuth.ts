@@ -30,7 +30,8 @@ export function useRegister() {
     onSuccess: (data) => {
       setAuth(data.user, data.access, data.refresh)
       const next = searchParams.get('next')
-      navigate(next && next.startsWith('/') ? next : '/')
+      // Send new users through onboarding to set preferences
+      navigate(next && next.startsWith('/') ? next : '/onboarding/preferencias')
     },
   })
 }

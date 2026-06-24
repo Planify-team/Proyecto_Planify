@@ -90,7 +90,7 @@ export default function OnboardingPage() {
           disabled={selected.size === 0}
           leftIcon={<Sparkles className="h-4 w-4" />}
         >
-          Ver mis recomendaciones ({selected.size} seleccionados)
+          {selected.size > 0 ? `Ver mis recomendaciones (${selected.size})` : 'Ver mis recomendaciones'}
         </Button>
       </div>
     </div>
