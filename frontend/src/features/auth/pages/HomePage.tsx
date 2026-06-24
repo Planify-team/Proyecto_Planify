@@ -62,7 +62,7 @@ export default function HomePage() {
   }
 
   const { data: recommendations = [], isFetching: recLoading, isError: recError } = useRecommendations(
-    { budget: recFilters.budget, people: recFilters.people },
+    { lat: BA.lat, lon: BA.lon, budget: recFilters.budget, people: recFilters.people },
     triggered,
   )
   const topRec = recommendations[0] ?? null
