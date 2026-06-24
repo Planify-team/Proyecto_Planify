@@ -26,6 +26,59 @@ const userIcon = new L.Icon({
   className: 'user-marker-icon hue-rotate-[200deg]',
 })
 
+// Category → emoji mapping
+const CATEGORY_EMOJI_MAP: { emoji: string; label: string; keywords: string[] }[] = [
+  { emoji: '🍽️', label: 'Gastronomía', keywords: ['gastro', 'restaurante', 'comida', 'feria gastro'] },
+  { emoji: '☕', label: 'Café',         keywords: ['café', 'cafe', 'cafetería'] },
+  { emoji: '🍺', label: 'Bar',          keywords: ['bar', 'boliche', 'nightlife', 'disco', 'cerveza'] },
+  { emoji: '🏛️', label: 'Cultura',     keywords: ['museo', 'cultur', 'histori', 'ciencia'] },
+  { emoji: '🎭', label: 'Teatro',       keywords: ['teatro', 'danza', 'tango'] },
+  { emoji: '🎬', label: 'Cine',         keywords: ['cine'] },
+  { emoji: '🎨', label: 'Arte',         keywords: ['arte', 'galería', 'galeria'] },
+  { emoji: '⚽', label: 'Deportes',     keywords: ['deporte', 'estadio', 'fútbol', 'futbol', 'club deportiv', 'gimnasia', 'natación'] },
+  { emoji: '🏆', label: 'Aventura',     keywords: ['aventura', 'trampolines', 'tiro', 'paintball', 'karting'] },
+  { emoji: '🌳', label: 'Parques',      keywords: ['parque', 'plaza', 'naturaleza', 'verde', 'reserva'] },
+  { emoji: '🛍️', label: 'Shopping',    keywords: ['shopping', 'comercial', 'paseo comercial'] },
+  { emoji: '🗺️', label: 'Turismo',     keywords: ['turismo', 'turístic', 'monumento', 'arquitectura'] },
+  { emoji: '🎮', label: 'Gaming',       keywords: ['gaming', 'escape', 'arcade', 'entretenimiento', 'videojueg', 'simulac', 'casino', 'ocio'] },
+  { emoji: '🎵', label: 'Música',       keywords: ['música', 'musica'] },
+]
+
+function getCategoryEmoji(category: string): string {
+  const lower = category.toLowerCase()
+  for (const { emoji, keywords } of CATEGORY_EMOJI_MAP) {
+    if (keywords.some((kw) => lower.includes(kw))) return emoji
+  }
+  return '📍'
+}
+
+function getCategoryLabel(category: string): string {
+  const lower = category.toLowerCase()
+  for (const { label, keywords } of CATEGORY_EMOJI_MAP) {
+    if (keywords.some((kw) => lower.includes(kw))) return label
+  }
+  return 'Otros'
+}
+
+// Cache icons to avoid recreating on every render
+const iconCache = new Map<string, L.DivIcon>()
+function getCategoryIcon(category: string): L.DivIcon {
+  const emoji = getCategoryEmoji(category)
+  if (!iconCache.has(emoji)) {
+    iconCache.set(
+      emoji,
+      L.divIcon({
+        html: `<div style="background:white;border:2px solid rgba(124,58,237,0.5);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 2px 8px rgba(0,0,0,0.2),0 0 0 1px rgba(124,58,237,0.08);cursor:pointer;">${emoji}</div>`,
+        className: '',
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
+        popupAnchor: [0, -20],
+      }),
+    )
+  }
+  return iconCache.get(emoji)!
+}
+
 const BUENOS_AIRES_CENTER: [number, number] = [-34.6037, -58.3816]
 
 const EXCLUDED_CATEGORIES = new Set([
@@ -38,14 +91,12 @@ function RecenterMap({ center }: { center: [number, number] }) {
   return null
 }
 
-// Fires onChange whenever the user pans or zooms, keeping bounds in sync
 function BoundsWatcher({ onChange }: { onChange: (b: L.LatLngBounds) => void }) {
   const map = useMapEvents({
     moveend: () => onChange(map.getBounds()),
     zoomend: () => onChange(map.getBounds()),
     load:    () => onChange(map.getBounds()),
   })
-  // Emit initial bounds once mounted
   useEffect(() => { onChange(map.getBounds()) }, [map, onChange])
   return null
 }
@@ -66,7 +117,6 @@ export default function MapPage() {
   const [cityError, setCityError] = useState<string | null>(null)
   const [searchedCity, setSearchedCity] = useState<string | null>(null)
 
-  // Only internal (Excel) places with valid coordinates
   const allPlacesWithCoords = useMemo(
     () => places.filter(
       (p) => p.source === 'internal' && p.latitude && p.longitude && !EXCLUDED_CATEGORIES.has(p.category)
@@ -74,7 +124,6 @@ export default function MapPage() {
     [places],
   )
 
-  // Only render markers that are within the current map viewport
   const visiblePlaces = useMemo(
     () =>
       mapBounds
@@ -84,6 +133,16 @@ export default function MapPage() {
         : allPlacesWithCoords.slice(0, 60),
     [allPlacesWithCoords, mapBounds],
   )
+
+  // Unique categories present in visible places (for the legend)
+  const legendItems = useMemo(() => {
+    const seen = new Map<string, string>()
+    for (const place of visiblePlaces) {
+      const emoji = getCategoryEmoji(place.category)
+      if (!seen.has(emoji)) seen.set(emoji, getCategoryLabel(place.category))
+    }
+    return Array.from(seen.entries()).map(([emoji, label]) => ({ emoji, label }))
+  }, [visiblePlaces])
 
   const handleBoundsChange = useCallback((b: L.LatLngBounds) => setMapBounds(b), [])
 
@@ -127,7 +186,6 @@ export default function MapPage() {
     setSearchedCity(null)
     setCityError(null)
   }
-
 
   if (isLoading) {
     return (
@@ -227,12 +285,30 @@ export default function MapPage() {
             <Marker
               key={place.id}
               position={[parseFloat(String(place.latitude!)), parseFloat(String(place.longitude!))]}
+              icon={getCategoryIcon(place.category)}
             >
               <Popup>
-                <div className="min-w-[160px]">
-                  <p className="font-semibold text-gray-900">{place.name}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{place.category.split('/')[0].trim()}</p>
-                  {place.address && <p className="text-xs text-gray-400 mt-1">{place.address}</p>}
+                <div style={{ minWidth: '180px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '20px' }}>{getCategoryEmoji(place.category)}</span>
+                    <strong style={{ fontSize: '13px', color: '#111' }}>{place.name}</strong>
+                  </div>
+                  <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 2px' }}>
+                    {place.category.split('/')[0].trim()}
+                  </p>
+                  {place.address && (
+                    <p style={{ fontSize: '11px', color: '#9ca3af', margin: '0 0 8px' }}>{place.address}</p>
+                  )}
+                  <button
+                    onClick={() => navigate(`/places/${place.id}`)}
+                    style={{
+                      background: 'none', border: 'none', padding: 0,
+                      fontSize: '12px', color: '#7c3aed', fontWeight: 600,
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px',
+                    }}
+                  >
+                    Ver lugar →
+                  </button>
                 </div>
               </Popup>
             </Marker>
@@ -240,10 +316,26 @@ export default function MapPage() {
         </MapContainer>
       </div>
 
+      {/* Legend */}
+      {legendItems.length > 0 && (
+        <div className="flex gap-2 flex-wrap">
+          {legendItems.map(({ emoji, label }) => (
+            <span
+              key={emoji}
+              className="flex items-center gap-1 bg-white border border-gray-200 rounded-full px-2.5 py-1 text-xs text-gray-500 shadow-glass-sm"
+            >
+              {emoji} {label}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Card list: only shows places visible in current viewport */}
       {visiblePlaces.length > 0 && (
         <div>
-          <p className="text-xs text-gray-400 mb-2">Mostrando {visiblePlaces.length} lugar{visiblePlaces.length !== 1 ? 'es' : ''} en esta área — zoom o mové el mapa para ver más.</p>
+          <p className="text-xs text-gray-400 mb-2">
+            Mostrando {visiblePlaces.length} lugar{visiblePlaces.length !== 1 ? 'es' : ''} en esta área — zoom o mové el mapa para ver más.
+          </p>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             {visiblePlaces.map((place) => (
               <button
@@ -253,8 +345,8 @@ export default function MapPage() {
                 aria-label={place.name}
                 className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 p-3 shadow-glass-sm hover:shadow-neon-sm hover:border-primary-500/30 transition-all text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
               >
-                <div className="bg-primary-500/10 rounded-lg p-2 flex-shrink-0" aria-hidden="true">
-                  <MapPin className="h-4 w-4 text-primary-600" />
+                <div className="bg-primary-500/10 rounded-lg w-10 h-10 flex items-center justify-center flex-shrink-0 text-xl" aria-hidden="true">
+                  {getCategoryEmoji(place.category)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-gray-900 text-sm truncate">{place.name}</p>

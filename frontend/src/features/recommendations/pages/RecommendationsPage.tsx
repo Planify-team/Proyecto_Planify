@@ -93,12 +93,35 @@ export default function RecommendationsPage() {
       </div>
 
       {recommendations.length === 0 ? (
-        <EmptyState
-          title="Sin recomendaciones todavía"
-          description="Configurá tus intereses para que el motor de recomendaciones pueda sugerirte actividades, lugares y eventos personalizados."
-          icon={<Sparkles className="h-12 w-12 text-gray-300" />}
-          action={{ label: 'Configurar mis intereses', onClick: () => navigate('/onboarding/preferencias') }}
-        />
+        <div className="flex flex-col gap-4 items-center text-center py-8">
+          <div className="text-5xl">✨</div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Todavía no hay recomendaciones</h2>
+            <p className="text-sm text-gray-500 max-w-xs mx-auto">
+              Contale a Planify qué te gusta y el motor te va a sugerir lugares, actividades y eventos personalizados para vos.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-3 w-full max-w-sm text-xs text-gray-500">
+            <div className="bg-white border border-gray-200 rounded-xl p-3 flex flex-col items-center gap-1.5 shadow-glass-sm">
+              <span className="text-2xl">👤</span>
+              <span>Configurá tus gustos</span>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-3 flex flex-col items-center gap-1.5 shadow-glass-sm">
+              <span className="text-2xl">🤖</span>
+              <span>El motor analiza</span>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-3 flex flex-col items-center gap-1.5 shadow-glass-sm">
+              <span className="text-2xl">🎯</span>
+              <span>Recibís sugerencias</span>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/onboarding/preferencias')}
+            className="bg-primary-600 text-white rounded-xl px-6 py-2.5 text-sm font-semibold hover:bg-primary-700 transition-colors shadow-neon-sm"
+          >
+            Configurar mis intereses →
+          </button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {recommendations.map((rec, i) => (
