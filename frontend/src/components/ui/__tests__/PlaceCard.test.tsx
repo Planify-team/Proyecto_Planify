@@ -48,7 +48,7 @@ describe('PlaceCard', () => {
 
   it('shows "Abierto ahora" badge when is_open_now=true', () => {
     renderWithProviders(<PlaceCard place={makePlace({ is_open_now: true })} />)
-    expect(screen.getByText('Abierto ahora')).toBeInTheDocument()
+    expect(screen.getByText('Abierto')).toBeInTheDocument()
   })
 
   it('shows "Cerrado" badge when is_open_now=false', () => {
@@ -58,28 +58,28 @@ describe('PlaceCard', () => {
 
   it('does not show status badge when is_open_now=null', () => {
     renderWithProviders(<PlaceCard place={makePlace({ is_open_now: null })} />)
-    expect(screen.queryByText('Abierto ahora')).not.toBeInTheDocument()
+    expect(screen.queryByText('Abierto')).not.toBeInTheDocument()
     expect(screen.queryByText('Cerrado')).not.toBeInTheDocument()
   })
 
   it('shows "Con terraza" when outdoor_seating=true', () => {
     renderWithProviders(<PlaceCard place={makePlace({ outdoor_seating: true })} />)
-    expect(screen.getByText('Con terraza')).toBeInTheDocument()
+    expect(screen.getByText(/terraza/i)).toBeInTheDocument()
   })
 
   it('does not show terraza badge when outdoor_seating=false', () => {
     renderWithProviders(<PlaceCard place={makePlace({ outdoor_seating: false })} />)
-    expect(screen.queryByText('Con terraza')).not.toBeInTheDocument()
+    expect(screen.queryByText(/terraza/i)).not.toBeInTheDocument()
   })
 
   it('shows "Entrada libre" when fee=false', () => {
     renderWithProviders(<PlaceCard place={makePlace({ fee: false })} />)
-    expect(screen.getByText('Entrada libre')).toBeInTheDocument()
+    expect(screen.getByText(/gratis/i)).toBeInTheDocument()
   })
 
   it('does not show entrada libre when fee=true', () => {
     renderWithProviders(<PlaceCard place={makePlace({ fee: true })} />)
-    expect(screen.queryByText('Entrada libre')).not.toBeInTheDocument()
+    expect(screen.queryByText(/gratis/i)).not.toBeInTheDocument()
   })
 
   it('shows Wifi badge when internet_access=true', () => {

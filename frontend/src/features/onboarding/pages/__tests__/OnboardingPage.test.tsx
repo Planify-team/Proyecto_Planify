@@ -40,14 +40,14 @@ describe('OnboardingPage', () => {
     renderWithProviders(<OnboardingPage />)
     fireEvent.click(screen.getByText('Música'))
     fireEvent.click(screen.getByText('Cine'))
-    expect(screen.getByRole('button', { name: /2 seleccionados/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /ver mis recomendaciones \(2\)/i })).toBeInTheDocument()
   })
 
   it('toggles deselection when clicking a selected preference', () => {
     renderWithProviders(<OnboardingPage />)
     fireEvent.click(screen.getByText('Música'))
     fireEvent.click(screen.getByText('Música'))
-    expect(screen.getByRole('button', { name: /0 seleccionados/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /ver mis recomendaciones/i })).toBeDisabled()
   })
 
   it('shows Omitir button', () => {

@@ -65,7 +65,7 @@ describe('RecommendationsPage', () => {
 
   it('shows empty state when no recommendations', () => {
     renderWithProviders(<RecommendationsPage />)
-    expect(screen.getByText(/sin recomendaciones todavía/i)).toBeInTheDocument()
+    expect(screen.getByText(/todavía no hay recomendaciones/i)).toBeInTheDocument()
   })
 
   it('renders recommendation cards', () => {
