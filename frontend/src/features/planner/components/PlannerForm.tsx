@@ -5,7 +5,7 @@ import type { PlanGenerateInput } from '@/types'
 import { localDateString } from '@/lib/format'
 
 const CABA_BARRIOS = [
-  'Buenos Aires',
+  'CABA',
   'Agronomía', 'Almagro', 'Balvanera', 'Barracas', 'Belgrano', 'Boedo',
   'Caballito', 'Chacarita', 'Coghlan', 'Colegiales', 'Constitución',
   'Flores', 'Floresta', 'La Boca', 'La Paternal', 'Liniers', 'Mataderos',
@@ -32,7 +32,7 @@ export function PlannerForm({ onSubmit, isLoading }: Props) {
   const [date, setDate] = useState(today)
   const [budget, setBudget] = useState('5000')
   const [peopleCount, setPeopleCount] = useState('2')
-  const [city, setCity] = useState('Buenos Aires')
+  const [city, setCity] = useState('CABA')
 
   const budgetDisplay = budget === '' ? '' : Number(budget).toLocaleString('es-AR')
 
@@ -75,7 +75,7 @@ export function PlannerForm({ onSubmit, isLoading }: Props) {
       <div>
         <label htmlFor="plan-city" className="block text-sm font-medium text-gray-600 mb-1">
           <MapPin className="inline h-4 w-4 mr-1" aria-hidden="true" />
-          Ciudad / Barrio
+          Barrio
         </label>
         <select
           id="plan-city"
