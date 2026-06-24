@@ -268,7 +268,7 @@ export default function HomePage() {
       {/* Stats strip */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { value: '193+', label: 'Lugares', color: 'text-primary-500', delay: 'count-up' },
+          { value: '225+', label: 'Lugares', color: 'text-primary-500', delay: 'count-up' },
           { value: '50+',  label: 'Actividades', color: 'text-electric-cyan', delay: 'count-up fade-in-up-1' },
           { value: '4.8★', label: 'Valoración', color: 'text-violet-400', delay: 'count-up fade-in-up-2' },
         ].map((s) => (

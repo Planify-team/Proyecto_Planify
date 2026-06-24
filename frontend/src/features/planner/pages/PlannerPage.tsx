@@ -100,19 +100,20 @@ export default function PlannerPage() {
 
               {currentPlan.items.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-4">
-                  No encontramos actividades para esa ciudad y fecha. Probá con otra ciudad.
+                  No encontramos actividades para esa ciudad y fecha. Probá con otra ciudad o ajustá los filtros.
                 </p>
               ) : (
-                <ItineraryView plan={currentPlan} readonly />
+                <>
+                  <ItineraryView plan={currentPlan} readonly />
+                  <button
+                    onClick={() => navigate(`/planes/${currentPlan.id}`)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl shadow-neon-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
+                  >
+                    Ver plan completo
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </>
               )}
-
-              <button
-                onClick={() => navigate(`/planes/${currentPlan.id}`)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl shadow-neon-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
-              >
-                Ver plan completo
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </button>
             </div>
           )}
 

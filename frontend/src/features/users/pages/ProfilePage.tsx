@@ -12,6 +12,14 @@ import Avatar from '@/components/ui/Avatar'
 import Button from '@/components/ui/Button'
 import { PREFERENCE_OPTIONS } from '@/lib/preferences'
 
+const ROLE_LABELS: Record<string, string> = {
+  user:            'Usuario',
+  admin:           'Administrador',
+  moderator:       'Moderador',
+  business_owner:  'Dueño de negocio',
+  event_organizer: 'Organizador de eventos',
+}
+
 export default function ProfilePage() {
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
@@ -58,7 +66,7 @@ export default function ProfilePage() {
           <div>
             <h2 className="text-xl font-semibold text-gray-800">{user.full_name}</h2>
             <p className="text-sm text-gray-500">{user.email}</p>
-            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-500/15 text-blue-400 mt-1">{user.role}</span>
+            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-500/15 text-blue-400 mt-1">{ROLE_LABELS[user.role] ?? user.role}</span>
           </div>
         </div>
 
@@ -181,22 +189,26 @@ export default function ProfilePage() {
           <p className="text-sm text-gray-500">No tenés preferencias configuradas. Agregá algunas para recibir mejores recomendaciones.</p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {preferences.map((pref) => (
+            {preferences.map((pref) => {
+              const opt = PREFERENCE_OPTIONS.find((o) => o.value === pref.value)
+              return (
               <div
                 key={pref.id}
                 className="flex items-center gap-1.5 px-3 py-1 bg-primary-500/15 text-primary-600 rounded-full text-sm font-medium"
               >
-                <span className="capitalize">{pref.value}</span>
+                {opt?.emoji && <span aria-hidden="true">{opt.emoji}</span>}
+                <span>{opt?.label ?? pref.value}</span>
                 <button
                   onClick={() => handleRemove(pref.id)}
                   disabled={removePref.isPending}
                   className="hover:text-red-500 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/40 rounded"
-                  aria-label={`Quitar ${pref.value}`}
+                  aria-label={`Quitar ${opt?.label ?? pref.value}`}
                 >
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </Card>

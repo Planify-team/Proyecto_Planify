@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { MapPin, TrendingUp, Navigation, Filter, X, Globe, Compass, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { usePlaces } from '@/hooks/usePlaces'
 import { useTrending } from '@/hooks/useTrending'
 import { useExternalPlaces } from '@/hooks/useExternalPlaces'
@@ -22,6 +22,17 @@ const PLACE_CHIPS: { key: string; emoji: string; label: string; keywords: string
   { key: 'shopping',       emoji: '🛍️', label: 'Shopping',     keywords: ['shopping', 'comercial', 'compras', 'paseo comercial'] },
   { key: 'turismo',        emoji: '✈️', label: 'Turismo',       keywords: ['turismo', 'turístic', 'monumento', 'arquitectura'] },
 ]
+
+const ACTIVITY_TYPE_TO_CHIP: Record<string, string> = {
+  gaming:     'entretenimiento',
+  sports:     'deportes',
+  cinema:     'cultural',
+  concert:    'cultural',
+  museum:     'cultural',
+  park:       'naturaleza',
+  restaurant: 'gastronomia',
+  bar:        'gastronomia',
+}
 
 function matchesChip(category: string, chip: typeof PLACE_CHIPS[number]) {
   const lower = category.toLowerCase()
@@ -46,6 +57,16 @@ export default function ExplorePage() {
   const [geoLoading, setGeoLoading] = useState(false)
   const [geoError, setGeoError] = useState<string | null>(null)
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Pre-select chip when navigated from HomePage shortcuts
+  useEffect(() => {
+    const actType = (location.state as { activityType?: string } | null)?.activityType
+    if (actType && ACTIVITY_TYPE_TO_CHIP[actType]) {
+      setSelectedChip(ACTIVITY_TYPE_TO_CHIP[actType])
+      setTab('lugares')
+    }
+  }, [location.state])
 
   // Load all 225 internal places once — client-side filtering
   const { data: allPlaces = [], isLoading: placesLoading } = usePlaces({})
