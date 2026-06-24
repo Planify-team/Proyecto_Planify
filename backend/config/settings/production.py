@@ -10,6 +10,13 @@ _db_url = config("DATABASE_URL", default="")
 if _db_url:
     DATABASES = {"default": dj_database_url.parse(_db_url, conn_max_age=600, ssl_require=True)}
 
+# Always allow the Vercel frontend + any extra origins from env
+_extra_cors = config("CORS_ALLOWED_ORIGINS", default="").split(",")
+CORS_ALLOWED_ORIGINS = [o for o in _extra_cors if o] + [
+    "https://planify-frontend-one.vercel.app",
+    "https://planify-frontend-one-git-main-planify-frontendvercelapp.vercel.app",
+]
+
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
