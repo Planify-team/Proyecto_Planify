@@ -137,7 +137,7 @@ def _collect_candidates(
             base_q = Q(city__icontains="Buenos Aires") | Q(city="")
             if city_lower not in ("caba", "buenos aires"):
                 activity_qs = activity_qs.filter(base_q).filter(
-                    Q(address__icontains=city) | Q(address="")
+                    address__icontains=city
                 )
             else:
                 activity_qs = activity_qs.filter(base_q)
@@ -178,7 +178,7 @@ def _collect_candidates(
             base_q = Q(city__icontains="Buenos Aires") | Q(city="")
             if city_lower not in ("caba", "buenos aires"):
                 place_qs = place_qs.filter(base_q).filter(
-                    Q(address__icontains=city) | Q(address="")
+                    address__icontains=city
                 )
             else:
                 place_qs = place_qs.filter(base_q)
@@ -222,7 +222,7 @@ def _collect_candidates(
             base_q = Q(place__city__icontains="Buenos Aires")
             if city_lower not in ("caba", "buenos aires"):
                 event_qs = event_qs.filter(base_q).filter(
-                    Q(place__address__icontains=city) | Q(place__address="")
+                    place__address__icontains=city
                 )
             else:
                 event_qs = event_qs.filter(base_q)
