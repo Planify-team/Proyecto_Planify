@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { MapPin, TrendingUp, Navigation, Filter, X, Globe, Compass, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { usePlaces } from '@/hooks/usePlaces'
@@ -58,6 +58,7 @@ export default function ExplorePage() {
   const [geoError, setGeoError] = useState<string | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
+  const chipContainerRef = useRef<HTMLDivElement>(null)
 
   // Pre-select chip when navigated from HomePage shortcuts
   useEffect(() => {
@@ -67,6 +68,13 @@ export default function ExplorePage() {
       setTab('lugares')
     }
   }, [location.state])
+
+  // Auto-scroll chip bar to show the selected chip
+  useEffect(() => {
+    if (!selectedChip || !chipContainerRef.current) return
+    const btn = chipContainerRef.current.querySelector<HTMLButtonElement>('[aria-pressed="true"]')
+    if (btn) chipContainerRef.current.scrollLeft = btn.offsetLeft - 8
+  }, [selectedChip])
 
   // Load all 225 internal places once — client-side filtering
   const { data: allPlaces = [], isLoading: placesLoading } = usePlaces({})
@@ -264,7 +272,7 @@ export default function ExplorePage() {
       {tab === 'lugares' && (
         <>
           {/* Category chips */}
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+          <div ref={chipContainerRef} className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
             {PLACE_CHIPS.map((chip) => (
               <button key={chip.key}
                 onClick={() => setSelectedChip(selectedChip === chip.key ? null : chip.key)}

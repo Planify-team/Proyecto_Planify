@@ -6,7 +6,6 @@ import { useWeather } from '@/hooks/useWeather'
 import { recommendationsService } from '@/services/recommendationsService'
 import FavoriteButton from '@/components/ui/FavoriteButton'
 import WeatherWidget from '@/components/ui/WeatherWidget'
-import EmptyState from '@/components/common/EmptyState'
 import { formatARS } from '@/lib/format'
 import type { Recommendation, ScoreBreakdown } from '@/types'
 
