@@ -132,10 +132,15 @@ def _collect_candidates(
             min_people__lte=people_count,
         )
     if city and phase in (1, 2):
+        city_lower = city.lower().strip()
         if _is_ba_context(city):
-            activity_qs = activity_qs.filter(
-                Q(city__icontains="Buenos Aires") | Q(city__icontains=city) | Q(city="")
-            )
+            base_q = Q(city__icontains="Buenos Aires") | Q(city="")
+            if city_lower not in ("caba", "buenos aires"):
+                activity_qs = activity_qs.filter(base_q).filter(
+                    Q(address__icontains=city) | Q(address="")
+                )
+            else:
+                activity_qs = activity_qs.filter(base_q)
         else:
             activity_qs = activity_qs.filter(Q(city__icontains=city) | Q(city=""))
 
@@ -168,10 +173,15 @@ def _collect_candidates(
         category__in=["Salud", "Alojamiento", "Shopping"]
     )
     if city and phase in (1, 2):
+        city_lower = city.lower().strip()
         if _is_ba_context(city):
-            place_qs = place_qs.filter(
-                Q(city__icontains="Buenos Aires") | Q(city__icontains=city) | Q(city="")
-            )
+            base_q = Q(city__icontains="Buenos Aires") | Q(city="")
+            if city_lower not in ("caba", "buenos aires"):
+                place_qs = place_qs.filter(base_q).filter(
+                    Q(address__icontains=city) | Q(address="")
+                )
+            else:
+                place_qs = place_qs.filter(base_q)
         else:
             place_qs = place_qs.filter(Q(city__icontains=city) | Q(city=""))
 
@@ -207,10 +217,15 @@ def _collect_candidates(
     if phase == 1:
         event_qs = event_qs.filter(price__lte=budget_per_slot)
     if city and phase in (1, 2):
+        city_lower = city.lower().strip()
         if _is_ba_context(city):
-            event_qs = event_qs.filter(
-                Q(place__city__icontains="Buenos Aires") | Q(place__city__icontains=city)
-            )
+            base_q = Q(place__city__icontains="Buenos Aires")
+            if city_lower not in ("caba", "buenos aires"):
+                event_qs = event_qs.filter(base_q).filter(
+                    Q(place__address__icontains=city) | Q(place__address="")
+                )
+            else:
+                event_qs = event_qs.filter(base_q)
         else:
             event_qs = event_qs.filter(place__city__icontains=city)
 
